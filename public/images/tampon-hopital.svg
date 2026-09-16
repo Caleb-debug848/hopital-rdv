@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" fill="none">
+  <defs>
+    <!-- Path pour le texte circulaire supérieur -->
+    <path id="circleTop" d="M 30,120 A 90,90 0 0,1 210,120" />
+    <!-- Path pour le texte circulaire inférieur -->
+    <path id="circleBottom" d="M 210,120 A 90,90 0 0,1 30,120" />
+  </defs>
+
+  <!-- Groupe avec légère inclinaison de tampon manuel -->
+  <g transform="rotate(-3 120 120)" stroke="#1D4ED8" fill="#1D4ED8">
+    
+    <!-- Double cercle extérieur de tampon officiel -->
+    <circle cx="120" cy="120" r="110" stroke-width="3" stroke-dasharray="8 3" fill="none" opacity="0.85" />
+    <circle cx="120" cy="120" r="102" stroke-width="2" fill="none" opacity="0.9" />
+    <circle cx="120" cy="120" r="74" stroke-width="1.5" stroke-dasharray="4 2" fill="none" opacity="0.75" />
+
+    <!-- Texte Circulaire Supérieur -->
+    <text font-family="'Plus Jakarta Sans', 'Inter', sans-serif" font-size="9.5" font-weight="800" letter-spacing="0.18em" fill="#1D4ED8" opacity="0.9">
+      <textPath href="#circleTop" startOffset="50%" text-anchor="middle">
+        HÔPITAL RDV • SERVICE MÉDICAL
+      </textPath>
+    </text>
+
+    <!-- Texte Circulaire Inférieur -->
+    <text font-family="'Plus Jakarta Sans', 'Inter', sans-serif" font-size="8.5" font-weight="800" letter-spacing="0.22em" fill="#1D4ED8" opacity="0.9">
+      <textPath href="#circleBottom" startOffset="50%" text-anchor="middle">
+        ★ CONFORMITÉ VALIDÉE ★
+      </textPath>
+    </text>
+
+    <!-- Étoiles de part et d'autre -->
+    <path d="M 22,120 L 25,122 L 24,119 L 26,117 L 23,117 Z" />
+    <path d="M 218,120 L 221,122 L 220,119 L 222,117 L 219,117 Z" />
+
+    <!-- Cadre Central Rectangulaire du Tampon "VALIDÉ" -->
+    <rect x="42" y="96" width="156" height="48" rx="6" stroke="#1D4ED8" stroke-width="2.5" fill="#EFF6FF" fill-opacity="0.6" />
+    
+    <!-- Libellé "HÔPITAL RDV" dans le tampon -->
+    <text x="120" y="112" font-family="'Plus Jakarta Sans', 'Inter', sans-serif" font-size="10.5" font-weight="800" letter-spacing="0.15em" text-anchor="middle" fill="#1E40AF">
+      HÔPITAL RDV
+    </text>
+
+    <!-- Tampon principal "VALIDÉ" -->
+    <text x="120" y="136" font-family="'Plus Jakarta Sans', 'Inter', sans-serif" font-size="20" font-weight="900" letter-spacing="0.12em" text-anchor="middle" fill="#1D4ED8">
+      VALIDÉ
+    </text>
+
+    <!-- Croix médicale discrète au sommet du centre -->
+    <rect x="117" y="56" width="6" height="14" rx="2" opacity="0.75" />
+    <rect x="113" y="60" width="14" height="6" rx="2" opacity="0.75" />
+  </g>
+</svg>

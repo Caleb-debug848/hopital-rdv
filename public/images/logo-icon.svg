@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" class="w-full h-full">
+  <defs>
+    <!-- Dégradé Principal Cobalt -> Turquoise Médical -->
+    <linearGradient id="medGrad" x1="4" y1="4" x2="60" y2="60" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#2563EB" />
+      <stop offset="50%" stop-color="#0284C7" />
+      <stop offset="100%" stop-color="#0D9488" />
+    </linearGradient>
+    
+    <!-- Dégradé Accent Lumineux -->
+    <linearGradient id="glowGrad" x1="16" y1="8" x2="48" y2="56" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#60A5FA" />
+      <stop offset="100%" stop-color="#34D399" />
+    </linearGradient>
+
+    <!-- Ombre douce vectorielle portée -->
+    <filter id="softShadow" x="-10%" y="-10%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="4" stdDeviation="4" flood-color="#1E3A8A" flood-opacity="0.18" />
+    </filter>
+  </defs>
+
+  <!-- Groupe Principal avec Ombre -->
+  <g filter="url(#softShadow)">
+    <!-- Base de la Croix Médicale Moderne Arrondie -->
+    <!-- Branche Verticale -->
+    <rect x="23" y="8" width="18" height="48" rx="9" fill="url(#medGrad)" />
+    <!-- Branche Horizontale -->
+    <rect x="8" y="23" width="48" height="18" rx="9" fill="url(#medGrad)" />
+    
+    <!-- Ligne de Pouls / Rythme Cardiaque au centre (Symbole de Vie & Réactivité) -->
+    <path d="M14 32h9l3.5-7 5 14 4.5-9 3 2h11" 
+          stroke="#FFFFFF" 
+          stroke-width="3" 
+          stroke-linecap="round" 
+          stroke-linejoin="round" />
+
+    <!-- Point Focal Connecté (Symbole de Rendez-vous & Précision) -->
+    <circle cx="48" cy="16" r="4.5" fill="url(#glowGrad)" stroke="#FFFFFF" stroke-width="2" />
+  </g>
+</svg>
