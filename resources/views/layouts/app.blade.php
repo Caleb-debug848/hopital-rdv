@@ -70,6 +70,11 @@
     <!-- Lucide Icons Vectoriels Professionnels -->
     <script src="https://unpkg.com/lucide@latest"></script>
 
+    <!-- NProgress & instant.page pour une navigation ultra rapide et fluide -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/nprogress/0.2.0/nprogress.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/nprogress/0.2.0/nprogress.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/instant.page@5.2.0/instantpage.js" type="module"></script>
+
     <style>
         [x-cloak] { display: none !important; }
         ::-webkit-scrollbar { width: 5px; height: 5px; }
@@ -81,6 +86,16 @@
         .sidebar-transition {
             transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
+
+        /* NProgress Bar personnalisée Cobalt Médical */
+        #nprogress .bar {
+            background: #2563eb !important;
+            height: 3px !important;
+        }
+        #nprogress .peg {
+            box-shadow: 0 0 10px #2563eb, 0 0 5px #2563eb !important;
+        }
+        #nprogress .spinner { display: none !important; }
     </style>
 </head>
 <body class="h-full font-sans text-slate-800 antialiased bg-[#f8fafc]" 
@@ -479,9 +494,22 @@
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             if (window.lucide) { lucide.createIcons(); }
+            if (window.NProgress) { NProgress.done(); }
         });
         document.addEventListener('alpine:initialized', () => {
             if (window.lucide) { lucide.createIcons(); }
+        });
+
+        // Déclencher NProgress au clic sur les liens internes
+        document.addEventListener('click', (e) => {
+            const link = e.target.closest('a');
+            if (link && link.href && link.href.startsWith(window.location.origin) && !link.hasAttribute('download') && link.target !== '_blank' && !link.href.includes('#')) {
+                if (window.NProgress) NProgress.start();
+            }
+        });
+
+        window.addEventListener('pageshow', () => {
+            if (window.NProgress) NProgress.done();
         });
     </script>
     @stack('scripts')
