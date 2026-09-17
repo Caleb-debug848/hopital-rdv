@@ -13,11 +13,25 @@
             <p class="text-xs text-slate-500">Analyse de l'affluence, absentéisme, activité médicale et exports certifiés pour la Direction</p>
         </div>
 
-        <div class="flex items-center gap-2">
-            <a href="{{ route('admin.statistiques.export', ['periode' => $periode]) }}"
+        <div class="flex items-center gap-2 flex-wrap">
+            <a href="{{ route('admin.statistiques.rapport-pdf', ['periode' => $periode]) }}"
+               target="_blank"
+               class="px-4 py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition inline-flex items-center gap-2 shadow-sm">
+                <i data-lucide="file-text" class="w-4 h-4 text-blue-400"></i>
+                <span>Rapport PDF (Direction)</span>
+            </a>
+
+            <a href="{{ route('admin.statistiques.export', ['periode' => $periode, 'format' => 'excel']) }}"
                class="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition inline-flex items-center gap-2 shadow-sm">
-                <i data-lucide="download" class="w-4 h-4"></i>
-                Exporter en CSV / Excel (1 Clic)
+                <i data-lucide="sheet" class="w-4 h-4"></i>
+                <span>Exporter Excel Pro (.XLS)</span>
+            </a>
+
+            <a href="{{ route('admin.statistiques.export', ['periode' => $periode, 'format' => 'csv']) }}"
+               class="px-3 py-2.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-xl text-xs font-bold transition inline-flex items-center gap-1.5 shadow-xs"
+               title="Télécharger les données brutes au format CSV">
+                <i data-lucide="database" class="w-3.5 h-3.5 text-slate-500"></i>
+                <span>CSV</span>
             </a>
         </div>
     </div>

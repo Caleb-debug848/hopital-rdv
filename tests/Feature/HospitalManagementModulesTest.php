@@ -103,7 +103,7 @@ class HospitalManagementModulesTest extends TestCase
      */
     public function test_admin_can_export_consultations_csv(): void
     {
-        RendezVous::create([
+        $rdv = RendezVous::create([
             'patient_id' => $this->patient->id,
             'medecin_id' => $this->medecin->id,
             'specialite_id' => $this->specialite->id,
@@ -113,11 +113,25 @@ class HospitalManagementModulesTest extends TestCase
             'motif' => 'Bilan annuel',
         ]);
 
-        $response = $this->actingAs($this->adminUser)->get(route('admin.statistiques.export', ['periode' => 'ce_mois']));
+        // 1. Test Export Excel Pro Stylé (.XLS)
+        $responseExcel = $this->actingAs($this->adminUser)->get(route('admin.statistiques.export', ['periode' => 'ce_mois', 'format' => 'excel']));
+        $responseExcel->assertStatus(200);
+        $responseExcel->assertHeader('Content-Type', 'application/vnd.ms-excel; charset=UTF-8');
+        $this->assertStringContainsString('attachment; filename="bilan-activite-hospitaliere-', $responseExcel->headers->get('Content-Disposition'));
+        $this->assertStringContainsString('BILAN OFFICIEL', $responseExcel->getContent());
+        $this->assertStringContainsString($rdv->reference_rdv, $responseExcel->getContent());
 
-        $response->assertStatus(200);
-        $response->assertHeader('Content-Type', 'text/csv; charset=UTF-8');
-        $this->assertStringContainsString('attachment; filename="rapport-activite-hospitaliere-', $response->headers->get('Content-Disposition'));
+        // 2. Test Export CSV Brut
+        $responseCsv = $this->actingAs($this->adminUser)->get(route('admin.statistiques.export', ['periode' => 'ce_mois', 'format' => 'csv']));
+        $responseCsv->assertStatus(200);
+        $responseCsv->assertHeader('Content-Type', 'text/csv; charset=UTF-8');
+        $this->assertStringContainsString('attachment; filename="rapport-activite-hospitaliere-', $responseCsv->headers->get('Content-Disposition'));
+
+        // 3. Test Rapport Direction A4 PDF
+        $responsePdf = $this->actingAs($this->adminUser)->get(route('admin.statistiques.rapport-pdf', ['periode' => 'ce_mois']));
+        $responsePdf->assertStatus(200);
+        $responsePdf->assertSee('Rapport Exécutif', false);
+        $responsePdf->assertSee($rdv->reference_rdv);
     }
 
     /**

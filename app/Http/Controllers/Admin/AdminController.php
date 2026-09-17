@@ -52,31 +52,38 @@ class AdminController extends Controller
         return view('admin.dashboard', compact('statsAujourdhui', 'globalStats', 'derniersRdv', 'specialitesStats'));
     }
 
-    public function statistiques(Request $request)
+    /**
+     * Calcul centralisé des métriques de pilotage hospitalier et d'affluence
+     */
+    private function getStatistiquesData(string $periode = 'ce_mois', ?string $dateDebutCustom = null, ?string $dateFinCustom = null): array
     {
-        $periode = $request->query('periode', 'ce_mois');
-        $dateDebut = null;
         $dateFin = Carbon::today()->endOfDay();
 
         switch ($periode) {
             case 'aujourdhui':
                 $dateDebut = Carbon::today()->startOfDay();
+                $periodeLabel = "Aujourd'hui (" . Carbon::today()->translatedFormat('d F Y') . ")";
                 break;
             case 'cette_semaine':
                 $dateDebut = Carbon::today()->startOfWeek();
+                $periodeLabel = "Cette semaine (du " . Carbon::today()->startOfWeek()->format('d/m/Y') . " au " . Carbon::today()->endOfWeek()->format('d/m/Y') . ")";
                 break;
             case 'ce_mois':
                 $dateDebut = Carbon::today()->startOfMonth();
+                $periodeLabel = "Mois de " . Carbon::today()->translatedFormat('F Y');
                 break;
             case 'cette_annee':
                 $dateDebut = Carbon::today()->startOfYear();
+                $periodeLabel = "Année " . Carbon::today()->format('Y');
                 break;
             case 'personnalise':
-                $dateDebut = $request->query('date_debut') ? Carbon::parse($request->query('date_debut'))->startOfDay() : Carbon::today()->subMonth();
-                $dateFin = $request->query('date_fin') ? Carbon::parse($request->query('date_fin'))->endOfDay() : Carbon::today()->endOfDay();
+                $dateDebut = $dateDebutCustom ? Carbon::parse($dateDebutCustom)->startOfDay() : Carbon::today()->subMonth();
+                $dateFin = $dateFinCustom ? Carbon::parse($dateFinCustom)->endOfDay() : Carbon::today()->endOfDay();
+                $periodeLabel = "Période du " . $dateDebut->format('d/m/Y') . " au " . $dateFin->format('d/m/Y');
                 break;
             default:
                 $dateDebut = Carbon::today()->startOfMonth();
+                $periodeLabel = "Mois de " . Carbon::today()->translatedFormat('F Y');
                 break;
         }
 
@@ -120,13 +127,20 @@ class AdminController extends Controller
             $q->whereBetween('date_rdv', [$dateDebut, $dateFin]);
         }])->orderBy('rendez_vous_count', 'desc')->get();
 
-        // Rendez-vous par médecin
-        $byMedecin = Medecin::with(['user', 'specialite'])->withCount(['rendezVous' => function ($q) use ($dateDebut, $dateFin) {
+        // Rendez-vous par médecin avec cabinet
+        $byMedecin = Medecin::with(['user', 'specialite', 'cabinet'])->withCount(['rendezVous' => function ($q) use ($dateDebut, $dateFin) {
             $q->whereBetween('date_rdv', [$dateDebut, $dateFin]);
         }])->orderBy('rendez_vous_count', 'desc')->get();
 
-        return view('admin.statistiques', compact(
+        // Tous les rendez-vous de la période avec leurs relations
+        $rdvs = (clone $query)->with(['patient.user', 'medecin.user', 'specialite', 'medecin.cabinet'])
+            ->orderBy('date_rdv', 'desc')
+            ->orderBy('heure_rdv', 'desc')
+            ->get();
+
+        return compact(
             'periode',
+            'periodeLabel',
             'dateDebut',
             'dateFin',
             'totalRdv',
@@ -135,93 +149,108 @@ class AdminController extends Controller
             'tauxPresence',
             'creneauxHoraires',
             'bySpecialite',
-            'byMedecin'
-        ));
+            'byMedecin',
+            'rdvs'
+        );
+    }
+
+    public function statistiques(Request $request)
+    {
+        $periode = $request->query('periode', 'ce_mois');
+        $data = $this->getStatistiquesData($periode, $request->query('date_debut'), $request->query('date_fin'));
+
+        return view('admin.statistiques', $data);
     }
 
     /**
-     * Export CSV conforme Excel en 1 clic pour la Direction Hospitalière
+     * Rapport Exécutif A4 Haute Définition pour la Direction Médicale
+     */
+    public function rapportPdf(Request $request)
+    {
+        $periode = $request->query('periode', 'ce_mois');
+        $data = $this->getStatistiquesData($periode, $request->query('date_debut'), $request->query('date_fin'));
+        $parametres = \App\Models\Parametre::getSettings();
+
+        return view('admin.rapport_export', array_merge($data, compact('parametres')));
+    }
+
+    /**
+     * Export professionnel (Excel stylé .XLS ou CSV brut conforme) pour la Direction
+     */
+    public function exportStatistiques(Request $request)
+    {
+        $periode = $request->query('periode', 'ce_mois');
+        $format = $request->query('format', 'excel');
+        $data = $this->getStatistiquesData($periode, $request->query('date_debut'), $request->query('date_fin'));
+        $parametres = \App\Models\Parametre::getSettings();
+
+        // Export CSV brut (compatibilité tableurs et intégrations comptables)
+        if ($format === 'csv') {
+            $filename = 'rapport-activite-hospitaliere-' . now()->format('Ymd-His') . '.csv';
+
+            $callback = function () use ($data) {
+                $handle = fopen('php://output', 'w');
+                fputs($handle, "\xEF\xBB\xBF"); // BOM UTF-8
+
+                fputcsv($handle, [
+                    'Référence RDV',
+                    'Date RDV',
+                    'Heure RDV',
+                    'Nom Patient',
+                    'Téléphone Patient',
+                    'Email Patient',
+                    'Médecin Praticien',
+                    'Spécialité',
+                    'Bureau / Salle',
+                    'Statut Consultation',
+                    'Motif Médical',
+                    'Date de Réservation'
+                ], ';');
+
+                foreach ($data['rdvs'] as $rdv) {
+                    fputcsv($handle, [
+                        $rdv->reference_rdv,
+                        $rdv->date_rdv->format('d/m/Y'),
+                        substr($rdv->heure_rdv, 0, 5),
+                        $rdv->patient?->user?->full_name ?? 'Inconnu',
+                        $rdv->patient?->user?->telephone ?? '—',
+                        $rdv->patient?->user?->email ?? '—',
+                        $rdv->medecin ? 'Dr. ' . $rdv->medecin->nom_complet : 'Non affecté',
+                        $rdv->specialite?->nom ?? '—',
+                        $rdv->medecin?->cabinet ? $rdv->medecin->cabinet->nom_court : ($rdv->medecin?->bureau ?? 'Standard'),
+                        $rdv->statut_badge['label'],
+                        $rdv->motif ?? 'Non spécifié',
+                        $rdv->created_at->format('d/m/Y H:i')
+                    ], ';');
+                }
+
+                fclose($handle);
+            };
+
+            return response()->stream($callback, 200, [
+                'Content-Type' => 'text/csv; charset=UTF-8',
+                'Content-Disposition' => "attachment; filename=\"{$filename}\"",
+            ]);
+        }
+
+        // Export Excel Haute Définition stylé (.XLS avec couleurs, en-tête institutionnel et KPI)
+        $filename = 'bilan-activite-hospitaliere-' . now()->format('Ymd-His') . '.xls';
+
+        return response()->view('admin.exports.statistiques_excel', array_merge($data, compact('parametres')), 200, [
+            'Content-Type' => 'application/vnd.ms-excel; charset=UTF-8',
+            'Content-Disposition' => "attachment; filename=\"{$filename}\"",
+            'Pragma' => 'no-cache',
+            'Expires' => '0',
+        ]);
+    }
+
+    /**
+     * Alias de rétro-compatibilité pour exportStatistiquesCsv
      */
     public function exportStatistiquesCsv(Request $request)
     {
-        $periode = $request->query('periode', 'ce_mois');
-        $dateFin = Carbon::today()->endOfDay();
-
-        switch ($periode) {
-            case 'aujourdhui':
-                $dateDebut = Carbon::today()->startOfDay();
-                break;
-            case 'cette_semaine':
-                $dateDebut = Carbon::today()->startOfWeek();
-                break;
-            case 'ce_mois':
-                $dateDebut = Carbon::today()->startOfMonth();
-                break;
-            case 'cette_annee':
-                $dateDebut = Carbon::today()->startOfYear();
-                break;
-            case 'personnalise':
-                $dateDebut = $request->query('date_debut') ? Carbon::parse($request->query('date_debut'))->startOfDay() : Carbon::today()->subMonth();
-                $dateFin = $request->query('date_fin') ? Carbon::parse($request->query('date_fin'))->endOfDay() : Carbon::today()->endOfDay();
-                break;
-            default:
-                $dateDebut = Carbon::today()->startOfMonth();
-                break;
-        }
-
-        $rdvs = RendezVous::whereBetween('date_rdv', [$dateDebut, $dateFin])
-            ->with(['patient.user', 'medecin.user', 'specialite'])
-            ->orderBy('date_rdv', 'desc')
-            ->orderBy('heure_rdv', 'desc')
-            ->get();
-
-        $filename = 'rapport-activite-hospitaliere-' . now()->format('Ymd-His') . '.csv';
-
-        $callback = function () use ($rdvs) {
-            $handle = fopen('php://output', 'w');
-            // BOM UTF-8 pour ouverture parfaite dans Microsoft Excel
-            fputs($handle, "\xEF\xBB\xBF");
-
-            // En-têtes CSV
-            fputcsv($handle, [
-                'Référence RDV',
-                'Date RDV',
-                'Heure RDV',
-                'Nom Patient',
-                'Téléphone Patient',
-                'Email Patient',
-                'Médecin Praticien',
-                'Spécialité',
-                'Bureau / Salle',
-                'Statut Consultation',
-                'Motif Médical',
-                'Date de Réservation'
-            ], ';');
-
-            foreach ($rdvs as $rdv) {
-                fputcsv($handle, [
-                    $rdv->reference_rdv,
-                    $rdv->date_rdv->format('d/m/Y'),
-                    substr($rdv->heure_rdv, 0, 5),
-                    $rdv->patient?->user?->full_name ?? 'Inconnu',
-                    $rdv->patient?->user?->telephone ?? '—',
-                    $rdv->patient?->user?->email ?? '—',
-                    $rdv->medecin ? 'Dr. ' . $rdv->medecin->nom_complet : 'Non affecté',
-                    $rdv->specialite?->nom ?? '—',
-                    $rdv->medecin?->bureau ?? $rdv->medecin?->service ?? 'Standard',
-                    $rdv->statut_badge['label'],
-                    $rdv->motif ?? 'Non spécifié',
-                    $rdv->created_at->format('d/m/Y H:i')
-                ], ';');
-            }
-
-            fclose($handle);
-        };
-
-        return response()->stream($callback, 200, [
-            'Content-Type' => 'text/csv; charset=UTF-8',
-            'Content-Disposition' => "attachment; filename=\"{$filename}\"",
-        ]);
+        $request->merge(['format' => 'csv']);
+        return $this->exportStatistiques($request);
     }
 
 

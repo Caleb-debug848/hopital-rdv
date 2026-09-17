@@ -67,7 +67,8 @@ Route::middleware(['auth', 'role:secretaire,admin'])->prefix('secretaire')->name
 Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('dashboard');
     Route::get('/statistiques', [AdminController::class, 'statistiques'])->name('statistiques');
-    Route::get('/statistiques/export', [AdminController::class, 'exportStatistiquesCsv'])->name('statistiques.export');
+    Route::get('/statistiques/export', [AdminController::class, 'exportStatistiques'])->name('statistiques.export');
+    Route::get('/statistiques/rapport-pdf', [AdminController::class, 'rapportPdf'])->name('statistiques.rapport-pdf');
     Route::get('/utilisateurs', [UserController::class, 'index'])->name('users.index');
     Route::post('/utilisateurs', [UserController::class, 'store'])->name('users.store');
     Route::put('/utilisateurs/{user}', [UserController::class, 'update'])->name('users.update');
