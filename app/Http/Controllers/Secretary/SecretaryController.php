@@ -122,6 +122,31 @@ class SecretaryController extends Controller
             $this->slotService->handleAppointmentCancellation($rendezVous);
         }
 
+        // Traçabilité médico-légale dans le journal d'audit
+        $actionMap = [
+            'arrive' => 'POINTAGE_ARRIVEE',
+            'termine' => 'CONSULTATION_TERMINEE',
+            'absent' => 'PATIENT_ABSENT',
+            'annule' => 'ANNULATION_RDV',
+            'confirme' => 'CONFIRMATION_RDV',
+        ];
+        $secretaireNom = \Illuminate\Support\Facades\Auth::user()->full_name;
+        $patientNom = $rendezVous->patient?->user?->full_name ?? 'le patient';
+        $desc = ($validated['statut'] === 'arrive')
+            ? "{$secretaireNom} a pointé l'arrivée de {$patientNom} pour la consultation {$rendezVous->reference_rdv}"
+            : "{$secretaireNom} a mis à jour le statut de {$rendezVous->reference_rdv} vers : " . ucfirst($validated['statut']);
+
+        \App\Services\AuditLogger::log(
+            $actionMap[$validated['statut']] ?? 'STATUT_CHANGE',
+            $desc,
+            [
+                'rendez_vous_id' => $rendezVous->id,
+                'reference' => $rendezVous->reference_rdv,
+                'statut' => $validated['statut'],
+                'patient_id' => $rendezVous->patient_id,
+            ]
+        );
+
         return back()->with('success', 'Rendez-vous mis à jour : statut "' . $rendezVous->statut_badge['label'] . '"');
     }
 
@@ -169,6 +194,18 @@ class SecretaryController extends Controller
             'statut' => 'confirme',
             'motif' => $validated['motif'] ?? 'Prise de rendez-vous au guichet',
         ]);
+
+        // Traçabilité de la création de RDV au guichet
+        \App\Services\AuditLogger::log(
+            'CREATION_RDV',
+            \Illuminate\Support\Facades\Auth::user()->full_name . " a créé un rendez-vous au guichet ({$rdv->reference_rdv}) pour {$patient->user->full_name}",
+            [
+                'rendez_vous_id' => $rdv->id,
+                'reference' => $rdv->reference_rdv,
+                'patient_id' => $patient->id,
+                'medecin_id' => $validated['medecin_id'],
+            ]
+        );
 
         return back()->with('success', 'Rendez-vous ' . $rdv->reference_rdv . ' enregistré avec succès au guichet !');
     }

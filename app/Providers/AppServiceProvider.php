@@ -21,5 +21,16 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Schema::defaultStringLength(191);
+
+        view()->composer('*', function ($view) {
+            try {
+                if (Schema::hasTable('parametres')) {
+                    $view->with('hopitalParametres', \App\Models\Parametre::getSettings());
+                }
+            } catch (\Throwable $e) {
+                // Silently catch in CLI/migrations
+            }
+        });
     }
 }
+

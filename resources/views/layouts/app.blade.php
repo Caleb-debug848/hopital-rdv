@@ -229,17 +229,24 @@
                         </a>
 
                         <a href="{{ route('admin.statistiques') }}" 
-                           :title="sidebarCollapsed ? 'Statistiques' : ''"
-                           class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition {{ request()->routeIs('admin.statistiques') ? 'bg-sidebar-active text-white shadow-xs border-l-2 border-brand-500 font-bold' : 'hover:bg-sidebar-hover hover:text-white' }}">
-                            <i data-lucide="bar-chart-3" class="w-4 h-4 flex-shrink-0 {{ request()->routeIs('admin.statistiques') ? 'text-brand-400' : 'text-slate-400' }}"></i>
-                            <span class="whitespace-nowrap overflow-hidden transition-all duration-200" :class="sidebarCollapsed ? 'lg:hidden' : 'inline'">Statistiques</span>
+                           :title="sidebarCollapsed ? 'Rapports & Pilotage' : ''"
+                           class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition {{ request()->routeIs('admin.statistiques*') ? 'bg-sidebar-active text-white shadow-xs border-l-2 border-brand-500 font-bold' : 'hover:bg-sidebar-hover hover:text-white' }}">
+                            <i data-lucide="bar-chart-3" class="w-4 h-4 flex-shrink-0 {{ request()->routeIs('admin.statistiques*') ? 'text-brand-400' : 'text-slate-400' }}"></i>
+                            <span class="whitespace-nowrap overflow-hidden transition-all duration-200" :class="sidebarCollapsed ? 'lg:hidden' : 'inline'">Rapports & Pilotage</span>
                         </a>
 
-                        <a href="{{ route('admin.users.index') }}" 
-                           :title="sidebarCollapsed ? 'Gestion des Comptes' : ''"
-                           class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition {{ request()->routeIs('admin.users*') ? 'bg-sidebar-active text-white shadow-xs border-l-2 border-brand-500 font-bold' : 'hover:bg-sidebar-hover hover:text-white' }}">
-                            <i data-lucide="users" class="w-4 h-4 flex-shrink-0 {{ request()->routeIs('admin.users*') ? 'text-brand-400' : 'text-slate-400' }}"></i>
-                            <span class="whitespace-nowrap overflow-hidden transition-all duration-200" :class="sidebarCollapsed ? 'lg:hidden' : 'inline'">Comptes & Rôles</span>
+                        <a href="{{ route('admin.patients.index') }}" 
+                           :title="sidebarCollapsed ? 'Dossiers Patients' : ''"
+                           class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition {{ request()->routeIs('admin.patients*') ? 'bg-sidebar-active text-white shadow-xs border-l-2 border-brand-500 font-bold' : 'hover:bg-sidebar-hover hover:text-white' }}">
+                            <i data-lucide="folder-heart" class="w-4 h-4 flex-shrink-0 {{ request()->routeIs('admin.patients*') ? 'text-brand-400' : 'text-slate-400' }}"></i>
+                            <span class="whitespace-nowrap overflow-hidden transition-all duration-200" :class="sidebarCollapsed ? 'lg:hidden' : 'inline'">Dossiers Patients</span>
+                        </a>
+
+                        <a href="{{ route('admin.cabinets.index') }}" 
+                           :title="sidebarCollapsed ? 'Cabinets & Salles' : ''"
+                           class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition {{ request()->routeIs('admin.cabinets*') ? 'bg-sidebar-active text-white shadow-xs border-l-2 border-brand-500 font-bold' : 'hover:bg-sidebar-hover hover:text-white' }}">
+                            <i data-lucide="building-2" class="w-4 h-4 flex-shrink-0 {{ request()->routeIs('admin.cabinets*') ? 'text-brand-400' : 'text-slate-400' }}"></i>
+                            <span class="whitespace-nowrap overflow-hidden transition-all duration-200" :class="sidebarCollapsed ? 'lg:hidden' : 'inline'">Cabinets & Salles</span>
                         </a>
 
                         <a href="{{ route('admin.medecins.index') }}" 
@@ -256,11 +263,39 @@
                             <span class="whitespace-nowrap overflow-hidden transition-all duration-200" :class="sidebarCollapsed ? 'lg:hidden' : 'inline'">Spécialités</span>
                         </a>
 
+                        <a href="{{ route('admin.users.index') }}" 
+                           :title="sidebarCollapsed ? 'Comptes & Rôles' : ''"
+                           class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition {{ request()->routeIs('admin.users*') ? 'bg-sidebar-active text-white shadow-xs border-l-2 border-brand-500 font-bold' : 'hover:bg-sidebar-hover hover:text-white' }}">
+                            <i data-lucide="users" class="w-4 h-4 flex-shrink-0 {{ request()->routeIs('admin.users*') ? 'text-brand-400' : 'text-slate-400' }}"></i>
+                            <span class="whitespace-nowrap overflow-hidden transition-all duration-200" :class="sidebarCollapsed ? 'lg:hidden' : 'inline'">Comptes & Rôles</span>
+                        </a>
+
                         <a href="{{ route('secretaire.guichet') }}" 
-                           :title="sidebarCollapsed ? 'Vue Guichet Direct' : ''"
+                           :title="sidebarCollapsed ? 'Guichet Direct' : ''"
                            class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition {{ request()->routeIs('secretaire.guichet') ? 'bg-sidebar-active text-white shadow-xs border-l-2 border-amber-500 font-bold' : 'hover:bg-sidebar-hover hover:text-white' }}">
                             <i data-lucide="clipboard-list" class="w-4 h-4 flex-shrink-0 text-slate-400"></i>
                             <span class="whitespace-nowrap overflow-hidden transition-all duration-200" :class="sidebarCollapsed ? 'lg:hidden' : 'inline'">Guichet Direct</span>
+                        </a>
+
+                        <a href="{{ route('admin.audit_logs.index') }}" 
+                           :title="sidebarCollapsed ? 'Journal d\'Audit' : ''"
+                           class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition {{ request()->routeIs('admin.audit_logs*') ? 'bg-sidebar-active text-white shadow-xs border-l-2 border-brand-500 font-bold' : 'hover:bg-sidebar-hover hover:text-white' }}">
+                            <i data-lucide="shield-alert" class="w-4 h-4 flex-shrink-0 {{ request()->routeIs('admin.audit_logs*') ? 'text-brand-400' : 'text-slate-400' }}"></i>
+                            <span class="whitespace-nowrap overflow-hidden transition-all duration-200" :class="sidebarCollapsed ? 'lg:hidden' : 'inline'">Journal d'Audit</span>
+                        </a>
+
+                        <a href="{{ route('admin.rappels.index') }}" 
+                           :title="sidebarCollapsed ? 'Supervision Rappels' : ''"
+                           class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition {{ request()->routeIs('admin.rappels*') ? 'bg-sidebar-active text-white shadow-xs border-l-2 border-brand-500 font-bold' : 'hover:bg-sidebar-hover hover:text-white' }}">
+                            <i data-lucide="bell-ring" class="w-4 h-4 flex-shrink-0 {{ request()->routeIs('admin.rappels*') ? 'text-brand-400' : 'text-slate-400' }}"></i>
+                            <span class="whitespace-nowrap overflow-hidden transition-all duration-200" :class="sidebarCollapsed ? 'lg:hidden' : 'inline'">Supervision Rappels</span>
+                        </a>
+
+                        <a href="{{ route('admin.parametres.index') }}" 
+                           :title="sidebarCollapsed ? 'Paramètres Établissement' : ''"
+                           class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition {{ request()->routeIs('admin.parametres*') ? 'bg-sidebar-active text-white shadow-xs border-l-2 border-brand-500 font-bold' : 'hover:bg-sidebar-hover hover:text-white' }}">
+                            <i data-lucide="settings" class="w-4 h-4 flex-shrink-0 {{ request()->routeIs('admin.parametres*') ? 'text-brand-400' : 'text-slate-400' }}"></i>
+                            <span class="whitespace-nowrap overflow-hidden transition-all duration-200" :class="sidebarCollapsed ? 'lg:hidden' : 'inline'">Paramètres</span>
                         </a>
                     @endif
 

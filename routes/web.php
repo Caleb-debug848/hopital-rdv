@@ -67,6 +67,7 @@ Route::middleware(['auth', 'role:secretaire,admin'])->prefix('secretaire')->name
 Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('dashboard');
     Route::get('/statistiques', [AdminController::class, 'statistiques'])->name('statistiques');
+    Route::get('/statistiques/export', [AdminController::class, 'exportStatistiquesCsv'])->name('statistiques.export');
     Route::get('/utilisateurs', [UserController::class, 'index'])->name('users.index');
     Route::post('/utilisateurs', [UserController::class, 'store'])->name('users.store');
     Route::put('/utilisateurs/{user}', [UserController::class, 'update'])->name('users.update');
@@ -81,4 +82,20 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::put('/specialites/{specialite}', [AdminController::class, 'updateSpecialite'])->name('specialites.update');
     Route::delete('/specialites/{specialite}', [AdminController::class, 'destroySpecialite'])->name('specialites.destroy');
     Route::get('/patients', [AdminController::class, 'patients'])->name('patients.index');
+    Route::get('/patients/{patient}', [AdminController::class, 'patientShow'])->name('patients.show');
+    Route::get('/rendez-vous/{rendezVous}/attestation', [AdminController::class, 'attestation'])->name('rendez-vous.attestation');
+    Route::get('/audit-logs', [AdminController::class, 'auditLogs'])->name('audit_logs.index');
+    Route::get('/parametres', [AdminController::class, 'parametres'])->name('parametres.index');
+    Route::post('/parametres', [AdminController::class, 'updateParametres'])->name('parametres.update');
+    Route::get('/cabinets', [AdminController::class, 'cabinets'])->name('cabinets.index');
+    Route::post('/cabinets', [AdminController::class, 'storeCabinet'])->name('cabinets.store');
+    Route::put('/cabinets/{cabinet}', [AdminController::class, 'updateCabinet'])->name('cabinets.update');
+    Route::delete('/cabinets/{cabinet}', [AdminController::class, 'destroyCabinet'])->name('cabinets.destroy');
+    Route::get('/rappels', [AdminController::class, 'rappels'])->name('rappels.index');
+    Route::post('/rappels/trigger', [AdminController::class, 'triggerRappelsNow'])->name('rappels.trigger');
 });
+
+
+
+
+

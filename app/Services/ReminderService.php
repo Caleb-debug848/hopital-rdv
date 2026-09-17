@@ -65,6 +65,19 @@ class ReminderService
             'lu' => false,
         ]);
 
+        // 4. Traçabilité dans le journal d'audit
+        AuditLogger::log(
+            'RAPPEL_CONSULTATION',
+            "Rappel officiel envoyé à {$user->full_name} ({$user->email}) pour {$rdv->reference_rdv}",
+            [
+                'rendez_vous_id' => $rdv->id,
+                'reference' => $rdv->reference_rdv,
+                'email' => $user->email,
+                'telephone' => $user->telephone,
+                'email_sent' => $emailSent,
+            ]
+        );
+
         return [
             'status' => 'success',
             'email_sent' => $emailSent,

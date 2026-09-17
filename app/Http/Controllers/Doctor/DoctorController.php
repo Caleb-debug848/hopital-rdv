@@ -137,6 +137,25 @@ class DoctorController extends Controller
             $this->slotService->handleAppointmentCancellation($rendezVous);
         }
 
+        // Traçabilité médico-légale dans le journal d'audit
+        $actionMap = [
+            'termine' => 'CONSULTATION_TERMINEE',
+            'absent' => 'PATIENT_ABSENT',
+            'annule' => 'ANNULATION_RDV',
+            'arrive' => 'POINTAGE_ARRIVEE',
+            'confirme' => 'CONFIRMATION_RDV',
+        ];
+        \App\Services\AuditLogger::log(
+            $actionMap[$validated['statut']] ?? 'STATUT_CHANGE',
+            "Dr. {$medecin->nom_complet} a passé la consultation {$rendezVous->reference_rdv} au statut : " . ucfirst($validated['statut']),
+            [
+                'rendez_vous_id' => $rendezVous->id,
+                'reference' => $rendezVous->reference_rdv,
+                'nouveau_statut' => $validated['statut'],
+                'patient_id' => $rendezVous->patient_id,
+            ]
+        );
+
         return back()->with('success', 'Statut du rendez-vous mis à jour avec succès.');
     }
 

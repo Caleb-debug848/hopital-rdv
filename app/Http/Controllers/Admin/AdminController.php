@@ -92,6 +92,29 @@ class AdminController extends Controller
             'absent' => (clone $query)->where('statut', 'absent')->count(),
         ];
 
+        // Indicateurs clés de performance médicale
+        $tauxAbsenteisme = $totalRdv > 0 ? round(($statutsBreakdown['absent'] / $totalRdv) * 100, 1) : 0;
+        $tauxPresence = $totalRdv > 0 ? round((($statutsBreakdown['termine'] + $statutsBreakdown['arrive']) / $totalRdv) * 100, 1) : 0;
+
+        // Analyse de l'affluence et heures de pointe
+        $creneauxHoraires = [
+            '08h - 10h' => 0,
+            '10h - 12h' => 0,
+            '12h - 14h' => 0,
+            '14h - 16h' => 0,
+            '16h - 18h' => 0,
+        ];
+
+        $rdvsHoraires = (clone $query)->get(['id', 'heure_rdv']);
+        foreach ($rdvsHoraires as $rdvItem) {
+            $h = (int) substr($rdvItem->heure_rdv, 0, 2);
+            if ($h >= 8 && $h < 10) $creneauxHoraires['08h - 10h']++;
+            elseif ($h >= 10 && $h < 12) $creneauxHoraires['10h - 12h']++;
+            elseif ($h >= 12 && $h < 14) $creneauxHoraires['12h - 14h']++;
+            elseif ($h >= 14 && $h < 16) $creneauxHoraires['14h - 16h']++;
+            elseif ($h >= 16 && $h < 18) $creneauxHoraires['16h - 18h']++;
+        }
+
         // Rendez-vous par spécialité
         $bySpecialite = Specialite::withCount(['rendezVous' => function ($q) use ($dateDebut, $dateFin) {
             $q->whereBetween('date_rdv', [$dateDebut, $dateFin]);
@@ -108,17 +131,107 @@ class AdminController extends Controller
             'dateFin',
             'totalRdv',
             'statutsBreakdown',
+            'tauxAbsenteisme',
+            'tauxPresence',
+            'creneauxHoraires',
             'bySpecialite',
             'byMedecin'
         ));
     }
 
+    /**
+     * Export CSV conforme Excel en 1 clic pour la Direction Hospitalière
+     */
+    public function exportStatistiquesCsv(Request $request)
+    {
+        $periode = $request->query('periode', 'ce_mois');
+        $dateFin = Carbon::today()->endOfDay();
+
+        switch ($periode) {
+            case 'aujourdhui':
+                $dateDebut = Carbon::today()->startOfDay();
+                break;
+            case 'cette_semaine':
+                $dateDebut = Carbon::today()->startOfWeek();
+                break;
+            case 'ce_mois':
+                $dateDebut = Carbon::today()->startOfMonth();
+                break;
+            case 'cette_annee':
+                $dateDebut = Carbon::today()->startOfYear();
+                break;
+            case 'personnalise':
+                $dateDebut = $request->query('date_debut') ? Carbon::parse($request->query('date_debut'))->startOfDay() : Carbon::today()->subMonth();
+                $dateFin = $request->query('date_fin') ? Carbon::parse($request->query('date_fin'))->endOfDay() : Carbon::today()->endOfDay();
+                break;
+            default:
+                $dateDebut = Carbon::today()->startOfMonth();
+                break;
+        }
+
+        $rdvs = RendezVous::whereBetween('date_rdv', [$dateDebut, $dateFin])
+            ->with(['patient.user', 'medecin.user', 'specialite'])
+            ->orderBy('date_rdv', 'desc')
+            ->orderBy('heure_rdv', 'desc')
+            ->get();
+
+        $filename = 'rapport-activite-hospitaliere-' . now()->format('Ymd-His') . '.csv';
+
+        $callback = function () use ($rdvs) {
+            $handle = fopen('php://output', 'w');
+            // BOM UTF-8 pour ouverture parfaite dans Microsoft Excel
+            fputs($handle, "\xEF\xBB\xBF");
+
+            // En-têtes CSV
+            fputcsv($handle, [
+                'Référence RDV',
+                'Date RDV',
+                'Heure RDV',
+                'Nom Patient',
+                'Téléphone Patient',
+                'Email Patient',
+                'Médecin Praticien',
+                'Spécialité',
+                'Bureau / Salle',
+                'Statut Consultation',
+                'Motif Médical',
+                'Date de Réservation'
+            ], ';');
+
+            foreach ($rdvs as $rdv) {
+                fputcsv($handle, [
+                    $rdv->reference_rdv,
+                    $rdv->date_rdv->format('d/m/Y'),
+                    substr($rdv->heure_rdv, 0, 5),
+                    $rdv->patient?->user?->full_name ?? 'Inconnu',
+                    $rdv->patient?->user?->telephone ?? '—',
+                    $rdv->patient?->user?->email ?? '—',
+                    $rdv->medecin ? 'Dr. ' . $rdv->medecin->nom_complet : 'Non affecté',
+                    $rdv->specialite?->nom ?? '—',
+                    $rdv->medecin?->bureau ?? $rdv->medecin?->service ?? 'Standard',
+                    $rdv->statut_badge['label'],
+                    $rdv->motif ?? 'Non spécifié',
+                    $rdv->created_at->format('d/m/Y H:i')
+                ], ';');
+            }
+
+            fclose($handle);
+        };
+
+        return response()->stream($callback, 200, [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => "attachment; filename=\"{$filename}\"",
+        ]);
+    }
+
+
     public function medecins()
     {
-        $medecins = Medecin::with(['user', 'specialite', 'disponibilites'])->withCount('rendezVous')->get();
+        $medecins = Medecin::with(['user', 'specialite', 'disponibilites', 'cabinet'])->withCount('rendezVous')->get();
         $specialites = Specialite::where('is_active', true)->get();
+        $cabinets = \App\Models\Cabinet::where('is_actif', true)->orderBy('batiment')->orderBy('nom')->get();
 
-        return view('admin.medecins.index', compact('medecins', 'specialites'));
+        return view('admin.medecins.index', compact('medecins', 'specialites', 'cabinets'));
     }
 
     public function storeMedecin(Request $request)
@@ -129,6 +242,7 @@ class AdminController extends Controller
             'email' => 'required|email|max:191|unique:users,email',
             'telephone' => 'required|string|max:50',
             'specialite_id' => 'required|exists:specialites,id',
+            'cabinet_id' => 'nullable|exists:cabinets,id',
             'service' => 'nullable|string|max:100',
             'bureau' => 'nullable|string|max:50',
             'biographie' => 'nullable|string',
@@ -136,12 +250,15 @@ class AdminController extends Controller
             'heure_debut' => 'required|string',
             'heure_fin' => 'required|string',
             'password' => 'required|min:6',
-        ], [
-            'email.unique' => 'Cette adresse email est déjà utilisée par un autre compte.',
-            'password.required' => 'Le mot de passe de connexion est obligatoire (minimum 6 caractères).',
-            'jours_consultation.required' => 'Veuillez cocher au moins un jour de consultation pour le praticien.',
-            'specialite_id.required' => 'Veuillez sélectionner une spécialité médicale.',
         ]);
+
+        if (!empty($validated['cabinet_id'])) {
+            $cab = \App\Models\Cabinet::find($validated['cabinet_id']);
+            if ($cab) {
+                $validated['bureau'] = $cab->nom . ' (' . $cab->batiment . ', ' . $cab->etage . ')';
+                $validated['service'] = $cab->batiment;
+            }
+        }
 
         return DB::transaction(function () use ($validated) {
             $user = User::create([
@@ -157,12 +274,15 @@ class AdminController extends Controller
             $medecin = Medecin::create([
                 'user_id' => $user->id,
                 'specialite_id' => $validated['specialite_id'],
+                'cabinet_id' => $validated['cabinet_id'] ?? null,
+                'titre' => 'Dr.',
                 'service' => $validated['service'] ?? 'Service Hospitalier',
                 'bureau' => $validated['bureau'] ?? 'Bureau Consultations',
                 'biographie' => $validated['biographie'] ?? null,
                 'jours_consultation' => $validated['jours_consultation'],
                 'heure_debut_defaut' => $validated['heure_debut'],
                 'heure_fin_defaut' => $validated['heure_fin'],
+                'duree_consultation' => 30,
                 'statut' => 'actif',
             ]);
 
@@ -177,7 +297,13 @@ class AdminController extends Controller
                 ]);
             }
 
-            return back()->with('success', 'Médecin ' . $medecin->nom_complet . ' créé et activé avec succès !');
+            \App\Services\AuditLogger::log(
+                'CREATION_PRATICIEN',
+                "Création du compte praticien Dr. {$medecin->nom_complet}",
+                ['medecin_id' => $medecin->id, 'specialite_id' => $validated['specialite_id']]
+            );
+
+            return back()->with('success', 'Praticien ' . $medecin->nom_complet . ' créé avec succès !');
         });
     }
 
@@ -189,6 +315,7 @@ class AdminController extends Controller
             'email' => 'required|email|max:191|unique:users,email,' . $medecin->user_id,
             'telephone' => 'required|string|max:50',
             'specialite_id' => 'required|exists:specialites,id',
+            'cabinet_id' => 'nullable|exists:cabinets,id',
             'service' => 'nullable|string|max:100',
             'bureau' => 'nullable|string|max:50',
             'biographie' => 'nullable|string',
@@ -197,6 +324,14 @@ class AdminController extends Controller
             'heure_fin' => 'required|string',
             'password' => 'nullable|min:6',
         ]);
+
+        if (!empty($validated['cabinet_id'])) {
+            $cab = \App\Models\Cabinet::find($validated['cabinet_id']);
+            if ($cab) {
+                $validated['bureau'] = $cab->nom . ' (' . $cab->batiment . ', ' . $cab->etage . ')';
+                $validated['service'] = $cab->batiment;
+            }
+        }
 
         return DB::transaction(function () use ($validated, $medecin) {
             $userData = [
@@ -214,6 +349,7 @@ class AdminController extends Controller
 
             $medecin->update([
                 'specialite_id' => $validated['specialite_id'],
+                'cabinet_id' => $validated['cabinet_id'] ?? $medecin->cabinet_id,
                 'service' => $validated['service'] ?? 'Service Hospitalier',
                 'bureau' => $validated['bureau'] ?? 'Bureau Consultations',
                 'biographie' => $validated['biographie'] ?? null,
@@ -234,6 +370,12 @@ class AdminController extends Controller
                     'is_active' => true,
                 ]);
             }
+
+            \App\Services\AuditLogger::log(
+                'MODIFICATION_PRATICIEN',
+                "Mise à jour du profil du Dr. {$medecin->nom_complet}",
+                ['medecin_id' => $medecin->id]
+            );
 
             return back()->with('success', 'Fiche du Médecin ' . $medecin->nom_complet . ' mise à jour avec succès !');
         });
@@ -338,4 +480,311 @@ class AdminController extends Controller
 
         return view('admin.patients.index', compact('patients', 'search'));
     }
+
+    /**
+     * Dossier Patient 360° Unique et Centralisé
+     */
+    public function patientShow(Patient $patient)
+    {
+        $patient->load(['user', 'rendezVous.medecin.user', 'rendezVous.specialite']);
+
+        $totalRdv = $patient->rendezVous->count();
+        $effectues = $patient->rendezVous->where('statut', 'termine')->count();
+        $aVenir = $patient->rendezVous->whereIn('statut', ['en_attente', 'confirme', 'arrive'])->count();
+        $annules = $patient->rendezVous->where('statut', 'annule')->count();
+        $absents = $patient->rendezVous->where('statut', 'absent')->count();
+
+        $tauxAssiduite = $totalRdv > 0 ? round((($effectues + $aVenir) / $totalRdv) * 100) : 100;
+
+        $medecinsConsultes = $patient->rendezVous
+            ->pluck('medecin')
+            ->filter()
+            ->unique('id')
+            ->values();
+
+        return view('admin.patients.show', compact(
+            'patient',
+            'totalRdv',
+            'effectues',
+            'aVenir',
+            'annules',
+            'absents',
+            'tauxAssiduite',
+            'medecinsConsultes'
+        ));
+    }
+
+    /**
+     * Accès administratif aux attestations certifiées
+     */
+    public function attestation(RendezVous $rendezVous)
+    {
+        $rendezVous->load(['medecin.user', 'specialite', 'patient.user']);
+        return view('patient.rendez_vous.attestation', compact('rendezVous'));
+    }
+
+    /**
+     * Journal d'Audit & Traçabilité Médico-Légale
+     */
+    public function auditLogs(Request $request)
+    {
+        $search = $request->query('search');
+        $action = $request->query('action');
+        $role = $request->query('role');
+        $date = $request->query('date');
+
+        $query = \App\Models\AuditLog::with('user');
+
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('description', 'like', "%{$search}%")
+                    ->orWhere('user_name', 'like', "%{$search}%")
+                    ->orWhere('ip_address', 'like', "%{$search}%");
+            });
+        }
+
+        if ($action) {
+            $query->where('action', $action);
+        }
+
+        if ($role) {
+            $query->where('user_role', $role);
+        }
+
+        if ($date) {
+            $query->whereDate('created_at', $date);
+        }
+
+        $logs = $query->orderBy('created_at', 'desc')->paginate(20);
+
+        $actionsList = \App\Models\AuditLog::select('action')->distinct()->pluck('action');
+
+        $totalAujourdhui = \App\Models\AuditLog::whereDate('created_at', Carbon::today())->count();
+        $totalPointages = \App\Models\AuditLog::where('action', 'POINTAGE_ARRIVEE')->count();
+        $totalAnnulations = \App\Models\AuditLog::where('action', 'ANNULATION_RDV')->count();
+
+        return view('admin.audit_logs.index', compact(
+            'logs',
+            'search',
+            'action',
+            'role',
+            'date',
+            'actionsList',
+            'totalAujourdhui',
+            'totalPointages',
+            'totalAnnulations'
+        ));
+    }
+
+    /**
+     * Paramètres Généraux de l'Établissement Hospitalier
+     */
+    public function parametres()
+    {
+        $parametres = \App\Models\Parametre::getSettings();
+        return view('admin.parametres', compact('parametres'));
+    }
+
+    public function updateParametres(Request $request)
+    {
+        $validated = $request->validate([
+            'nom_hopital' => 'required|string|max:191',
+            'slogan' => 'nullable|string|max:255',
+            'adresse' => 'required|string|max:255',
+            'telephone' => 'required|string|max:50',
+            'email_contact' => 'required|email|max:191',
+            'duree_creneau_defaut' => 'required|integer|in:15,20,30,45,60',
+            'heure_ouverture' => 'required|string',
+            'heure_fermeture' => 'required|string',
+            'logo' => 'nullable|image|mimes:jpeg,png,jpg,svg,webp|max:2048',
+        ]);
+
+        $parametres = \App\Models\Parametre::getSettings();
+
+        $updateData = [
+            'nom_hopital' => $validated['nom_hopital'],
+            'slogan' => $validated['slogan'] ?? null,
+            'adresse' => $validated['adresse'],
+            'telephone' => $validated['telephone'],
+            'email_contact' => $validated['email_contact'],
+            'duree_creneau_defaut' => $validated['duree_creneau_defaut'],
+            'heure_ouverture' => $validated['heure_ouverture'],
+            'heure_fermeture' => $validated['heure_fermeture'],
+        ];
+
+        if ($request->hasFile('logo')) {
+            $path = $request->file('logo')->store('hospital', 'public');
+            $updateData['logo_path'] = $path;
+        }
+
+        $parametres->update($updateData);
+        \App\Models\Parametre::clearCache();
+
+        // Traçabilité dans le journal d'audit
+        \App\Services\AuditLogger::log(
+            'PARAMETRES_MODIFIES',
+            \Illuminate\Support\Facades\Auth::user()->full_name . " a mis à jour les paramètres généraux de l'établissement",
+            $updateData
+        );
+
+        return back()->with('success', 'Paramètres de l\'établissement hospitalier enregistrés avec succès !');
+    }
+
+    /**
+     * Gestion des Services & Cabinets Médicaux
+     */
+    public function cabinets()
+    {
+        $cabinets = \App\Models\Cabinet::with(['medecins.user', 'medecins.specialite'])
+            ->orderBy('batiment')
+            ->orderBy('nom')
+            ->get();
+
+        $batiments = $cabinets->pluck('batiment')->unique()->values();
+        $capaciteTotale = $cabinets->sum('capacite');
+
+        return view('admin.cabinets.index', compact('cabinets', 'batiments', 'capaciteTotale'));
+    }
+
+    public function storeCabinet(Request $request)
+    {
+        $validated = $request->validate([
+            'nom' => 'required|string|max:100',
+            'batiment' => 'required|string|max:100',
+            'etage' => 'required|string|max:50',
+            'capacite' => 'required|integer|min:1|max:50',
+            'equipements' => 'nullable|string|max:255',
+        ]);
+
+        $cabinet = \App\Models\Cabinet::create([
+            'nom' => $validated['nom'],
+            'batiment' => $validated['batiment'],
+            'etage' => $validated['etage'],
+            'capacite' => $validated['capacite'],
+            'equipements' => $validated['equipements'] ?? null,
+            'is_actif' => true,
+        ]);
+
+        \App\Services\AuditLogger::log(
+            'CREATION_CABINET',
+            \Illuminate\Support\Facades\Auth::user()->full_name . " a créé le cabinet {$cabinet->nom} ({$cabinet->batiment})",
+            $validated
+        );
+
+        return back()->with('success', 'Cabinet / Salle ' . $cabinet->nom . ' ajouté avec succès !');
+    }
+
+    public function updateCabinet(Request $request, \App\Models\Cabinet $cabinet)
+    {
+        $validated = $request->validate([
+            'nom' => 'required|string|max:100',
+            'batiment' => 'required|string|max:100',
+            'etage' => 'required|string|max:50',
+            'capacite' => 'required|integer|min:1|max:50',
+            'equipements' => 'nullable|string|max:255',
+            'is_actif' => 'required|boolean',
+        ]);
+
+        $cabinet->update($validated);
+
+        \App\Services\AuditLogger::log(
+            'MODIFICATION_CABINET',
+            \Illuminate\Support\Facades\Auth::user()->full_name . " a modifié le cabinet {$cabinet->nom}",
+            $validated
+        );
+
+        return back()->with('success', 'Cabinet ' . $cabinet->nom . ' mis à jour avec succès !');
+    }
+
+    public function destroyCabinet(\App\Models\Cabinet $cabinet)
+    {
+        if ($cabinet->medecins()->count() > 0) {
+            return back()->with('error', 'Impossible de supprimer cette salle car des médecins y sont affectés. Veuillez d\'abord modifier leur affectation.');
+        }
+
+        $nom = $cabinet->nom;
+        $cabinet->delete();
+
+        \App\Services\AuditLogger::log(
+            'SUPPRESSION_CABINET',
+            \Illuminate\Support\Facades\Auth::user()->full_name . " a supprimé le cabinet {$nom}"
+        );
+
+        return back()->with('success', 'Cabinet ' . $nom . ' supprimé avec succès.');
+    }
+
+    /**
+     * Suivi des Rappels & Supervision des Notifications
+     */
+    public function rappels(Request $request)
+    {
+        $search = $request->query('search');
+        $type = $request->query('type');
+
+        $query = \App\Models\Notification::with('user');
+
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('titre', 'like', "%{$search}%")
+                    ->orWhere('message', 'like', "%{$search}%")
+                    ->orWhereHas('user', function ($qu) use ($search) {
+                        $qu->where('nom', 'like', "%{$search}%")
+                            ->orWhere('prenom', 'like', "%{$search}%")
+                            ->orWhere('email', 'like', "%{$search}%")
+                            ->orWhere('telephone', 'like', "%{$search}%");
+                    });
+            });
+        }
+
+        if ($type) {
+            $query->where('type', $type);
+        }
+
+        $notifications = $query->orderBy('created_at', 'desc')->paginate(20);
+
+        $rappelsAujourdhui = \App\Models\Notification::whereDate('created_at', Carbon::today())
+            ->whereIn('type', ['rappel', 'rappel_automatique'])
+            ->count();
+
+        $rappelsCeMois = \App\Models\Notification::where('created_at', '>=', Carbon::today()->startOfMonth())
+            ->whereIn('type', ['rappel', 'rappel_automatique'])
+            ->count();
+
+        $totalNotifications = \App\Models\Notification::count();
+
+        // RDV prévus demain qui recevront le prochain rappel à 08h00
+        $rdvsDemain = RendezVous::whereDate('date_rdv', Carbon::tomorrow())
+            ->whereIn('statut', ['confirme', 'en_attente'])
+            ->with(['patient.user', 'medecin.user', 'specialite'])
+            ->get();
+
+        return view('admin.rappels.index', compact(
+            'notifications',
+            'search',
+            'type',
+            'rappelsAujourdhui',
+            'rappelsCeMois',
+            'totalNotifications',
+            'rdvsDemain'
+        ));
+    }
+
+    public function triggerRappelsNow()
+    {
+        \Illuminate\Support\Facades\Artisan::call('rdv:send-reminders');
+        $output = \Illuminate\Support\Facades\Artisan::output();
+
+        \App\Services\AuditLogger::log(
+            'DECLENCHEMENT_RAPPELS',
+            \Illuminate\Support\Facades\Auth::user()->full_name . " a déclenché manuellement l'envoi des rappels de consultation",
+            ['output' => $output]
+        );
+
+        return back()->with('success', 'Envoi des rappels exécuté avec succès ! ' . trim($output));
+    }
 }
+
+
+
+
+

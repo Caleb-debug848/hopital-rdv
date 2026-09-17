@@ -176,6 +176,18 @@ class AppointmentController extends Controller
             ->whereDate('date_souhaitee', $validated['date_rdv'])
             ->update(['statut' => 'converti']);
 
+        // Traçabilité médico-légale
+        \App\Services\AuditLogger::log(
+            'CREATION_RDV',
+            "Le patient {$patient->user->full_name} a réservé la consultation {$rdv->reference_rdv} avec Dr. {$medecin->nom_complet}",
+            [
+                'rendez_vous_id' => $rdv->id,
+                'reference' => $rdv->reference_rdv,
+                'patient_id' => $patient->id,
+                'medecin_id' => $medecin->id,
+            ]
+        );
+
         // Notification pour le patient
         Notification::create([
             'user_id' => Auth::id(),
@@ -236,6 +248,19 @@ class AppointmentController extends Controller
             'annule_par' => 'patient',
             'notes_annulation' => $validated['notes_annulation'] ?? 'Annulé par le patient.',
         ]);
+
+        // Traçabilité médico-légale
+        \App\Services\AuditLogger::log(
+            'ANNULATION_RDV',
+            \Illuminate\Support\Facades\Auth::user()->full_name . " a annulé le rendez-vous {$rendezVous->reference_rdv}",
+            [
+                'rendez_vous_id' => $rendezVous->id,
+                'reference' => $rendezVous->reference_rdv,
+                'annule_par' => 'patient',
+                'motif_annulation' => $validated['notes_annulation'] ?? null,
+            ]
+        );
+
 
         // Déclencher la notification pour les personnes en liste d'attente
         $this->slotService->handleAppointmentCancellation($rendezVous);

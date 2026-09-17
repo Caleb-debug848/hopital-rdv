@@ -14,6 +14,7 @@ class Medecin extends Model
     protected $fillable = [
         'user_id',
         'specialite_id',
+        'cabinet_id',
         'titre',
         'service',
         'bureau',
@@ -42,6 +43,12 @@ class Medecin extends Model
     {
         return $this->belongsTo(Specialite::class);
     }
+
+    public function cabinet(): BelongsTo
+    {
+        return $this->belongsTo(Cabinet::class);
+    }
+
 
     public function disponibilites(): HasMany
     {

@@ -56,6 +56,14 @@
                         <span>Genre : <strong class="text-slate-700">{{ $patient->sexe ?? '—' }}</strong></span>
                         <span>Inscrit le {{ $patient->created_at->format('d/m/Y') }}</span>
                     </div>
+
+                    <div class="pt-2">
+                        <a href="{{ route('admin.patients.show', $patient->id) }}"
+                           class="w-full py-2 bg-white border border-brand-200 hover:bg-brand-50 text-brand-700 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 shadow-2xs">
+                            <i data-lucide="folder-heart" class="w-3.5 h-3.5"></i>
+                            Consulter le Dossier Médical
+                        </a>
+                    </div>
                 </div>
             @endforeach
         </div>
@@ -71,7 +79,8 @@
                         <th class="py-3 px-3">Email</th>
                         <th class="py-3 px-3">Sexe</th>
                         <th class="py-3 px-3">Date d'inscription</th>
-                        <th class="py-3 px-3 text-right">Consultations</th>
+                        <th class="py-3 px-3 text-center">Consultations</th>
+                        <th class="py-3 px-3 text-right">Action</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100">
@@ -95,10 +104,17 @@
                             <td class="py-3.5 px-3 text-slate-400">
                                 {{ $patient->created_at->format('d/m/Y') }}
                             </td>
-                            <td class="py-3.5 px-3 text-right font-bold text-slate-800">
+                            <td class="py-3.5 px-3 text-center font-bold text-slate-800">
                                 <span class="px-2.5 py-1 rounded-md bg-slate-100 text-slate-700 text-[11px]">
                                     {{ $patient->rendez_vous_count }} RDV
                                 </span>
+                            </td>
+                            <td class="py-3.5 px-3 text-right">
+                                <a href="{{ route('admin.patients.show', $patient->id) }}"
+                                   class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-brand-50 hover:bg-brand-100 text-brand-700 text-xs font-bold transition border border-brand-200">
+                                    <i data-lucide="folder-heart" class="w-3.5 h-3.5"></i>
+                                    Dossier
+                                </a>
                             </td>
                         </tr>
                     @endforeach
