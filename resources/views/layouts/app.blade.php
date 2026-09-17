@@ -161,7 +161,7 @@
                             title="Fermer le menu">
                         <i data-lucide="x" class="w-5 h-5"></i>
                     </button>
-                </div>             </div>
+                </div>
 
                 <!-- Navigation selon le Rôle -->
                 <nav class="flex flex-col gap-1.5">
