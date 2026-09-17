@@ -318,13 +318,21 @@
         <!-- ZONE DE CONTENU PRINCIPALE AVEC EXPANSION FLUIDE -->
         <div class="flex-1 flex flex-col min-w-0 overflow-x-hidden">
             
-            <!-- Topbar Header -->
-            <header class="bg-white border-b border-slate-200/80 sticky top-0 z-30 px-4 sm:px-8 py-3.5 flex items-center justify-between gap-4">
-                <div class="flex items-center gap-3">
+            <!-- Topbar Header Mobile-First -->
+            <header class="bg-white border-b border-slate-200/80 sticky top-0 z-30 px-3.5 sm:px-8 py-3 flex items-center justify-between gap-3">
+                <div class="flex items-center gap-2 sm:gap-3">
                     <!-- Toggle Mobile -->
-                    <button @click="sidebarOpen = true" class="lg:hidden p-2 rounded-xl text-slate-600 hover:bg-slate-100">
+                    <button @click="sidebarOpen = true" class="lg:hidden p-2 rounded-xl text-slate-600 hover:bg-slate-100 min-h-[44px] min-w-[44px] flex items-center justify-center" aria-label="Menu latéral">
                         <i data-lucide="menu" class="w-5 h-5"></i>
                     </button>
+
+                    <!-- Marque & Logo Mobile -->
+                    <a href="{{ route('home') }}" class="flex lg:hidden items-center gap-2">
+                        <img src="{{ asset('images/logo-icon.svg') }}" alt="Logo" class="w-8 h-8 flex-shrink-0">
+                        <span class="font-heading font-extrabold text-sm tracking-tight text-slate-900">
+                            Hôpital <span class="text-brand-600">RDV</span>
+                        </span>
+                    </a>
                     
                     <!-- Toggle Desktop Rapide depuis la Topbar -->
                     <button @click="toggleCollapse()" 
@@ -340,18 +348,19 @@
                 </div>
 
                 <!-- Barre d'outils droite -->
-                <div class="flex items-center gap-3">
-                    <a href="{{ route('notifications.index') }}" class="relative p-2 rounded-xl text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition">
+                <div class="flex items-center gap-2 sm:gap-3">
+                    <a href="{{ route('notifications.index') }}" class="relative p-2 rounded-xl text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition min-h-[44px] min-w-[44px] flex items-center justify-center" aria-label="Notifications">
                         <i data-lucide="bell" class="w-4 h-4"></i>
                         @if($unread > 0)
-                            <span class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-rose-600 ring-2 ring-white"></span>
+                            <span class="absolute top-2 right-2 w-2 h-2 rounded-full bg-rose-600 ring-2 ring-white"></span>
                         @endif
                     </a>
 
                     @if(Auth::user()->isPatient())
-                        <a href="{{ route('patient.rendez-vous.create') }}" class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold shadow-xs transition">
+                        <a href="{{ route('patient.rendez-vous.create') }}" class="inline-flex items-center gap-1.5 px-3 sm:px-3.5 py-2 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold shadow-xs transition">
                             <i data-lucide="plus" class="w-3.5 h-3.5"></i>
                             <span class="hidden sm:inline">Nouveau RDV</span>
+                            <span class="sm:hidden text-[11px]">Nouveau</span>
                         </a>
                     @endif
                 </div>
@@ -439,13 +448,125 @@
                 @endif
             </div>
 
-            <!-- Contenu de la Vue -->
-            <main class="flex-1 p-4 sm:p-8">
+            <!-- Contenu de la Vue Mobile-First -->
+            <main class="flex-1 p-3.5 sm:p-8 pb-24 lg:pb-8">
                 @yield('content')
             </main>
 
+            <!-- BARRE DE NAVIGATION BASSE MOBILE-FIRST TACTILE (SMARTPHONES) -->
+            <nav class="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200/80 px-2 py-1.5 flex items-center justify-around shadow-lg select-none">
+                @if(Auth::user()->isPatient())
+                    <!-- 1. Accueil / Dashboard -->
+                    <a href="{{ route('patient.dashboard') }}" class="flex flex-col items-center justify-center py-1 px-2.5 rounded-xl text-center min-w-[58px] transition-all active:scale-95 {{ request()->routeIs('patient.dashboard') ? 'text-brand-600 font-bold' : 'text-slate-400 hover:text-slate-600 font-medium' }}">
+                        <i data-lucide="layout-dashboard" class="w-5 h-5 {{ request()->routeIs('patient.dashboard') ? 'text-brand-600 stroke-[2.5]' : 'text-slate-400' }}"></i>
+                        <span class="text-[10px] mt-0.5">Accueil</span>
+                    </a>
+
+                    <!-- 2. Nouveau RDV (Bouton d'action principal surélevé) -->
+                    <a href="{{ route('patient.rendez-vous.create') }}" class="flex flex-col items-center justify-center py-1 px-2.5 rounded-xl text-center min-w-[58px] transition-all active:scale-95 {{ request()->routeIs('patient.rendez-vous.create') ? 'text-brand-600 font-bold' : 'text-slate-400 hover:text-slate-600 font-medium' }}">
+                        <div class="w-8 h-8 rounded-full bg-brand-600 text-white flex items-center justify-center shadow-md shadow-brand-600/30">
+                            <i data-lucide="calendar-plus" class="w-4 h-4"></i>
+                        </div>
+                        <span class="text-[10px] mt-0.5 {{ request()->routeIs('patient.rendez-vous.create') ? 'text-brand-600 font-bold' : 'text-slate-500' }}">Prendre RDV</span>
+                    </a>
+
+                    <!-- 3. Mes Rendez-vous -->
+                    <a href="{{ route('patient.rendez-vous.index') }}" class="flex flex-col items-center justify-center py-1 px-2.5 rounded-xl text-center min-w-[58px] transition-all active:scale-95 {{ request()->routeIs('patient.rendez-vous.index*') || request()->routeIs('patient.rendez-vous.show') ? 'text-brand-600 font-bold' : 'text-slate-400 hover:text-slate-600 font-medium' }}">
+                        <i data-lucide="calendar" class="w-5 h-5 {{ request()->routeIs('patient.rendez-vous.index*') || request()->routeIs('patient.rendez-vous.show') ? 'text-brand-600 stroke-[2.5]' : 'text-slate-400' }}"></i>
+                        <span class="text-[10px] mt-0.5">Mes RDV</span>
+                    </a>
+
+                    <!-- 4. Notifications -->
+                    <a href="{{ route('notifications.index') }}" class="relative flex flex-col items-center justify-center py-1 px-2.5 rounded-xl text-center min-w-[58px] transition-all active:scale-95 {{ request()->routeIs('notifications*') ? 'text-brand-600 font-bold' : 'text-slate-400 hover:text-slate-600 font-medium' }}">
+                        <i data-lucide="bell" class="w-5 h-5 {{ request()->routeIs('notifications*') ? 'text-brand-600 stroke-[2.5]' : 'text-slate-400' }}"></i>
+                        @if($unread > 0)
+                            <span class="absolute top-1 right-3 w-2 h-2 rounded-full bg-rose-600"></span>
+                        @endif
+                        <span class="text-[10px] mt-0.5">Alertes</span>
+                    </a>
+
+                    <!-- 5. Menu Plus -->
+                    <button type="button" @click="sidebarOpen = true" class="flex flex-col items-center justify-center py-1 px-2.5 rounded-xl text-center min-w-[58px] text-slate-400 hover:text-slate-600 font-medium transition-all active:scale-95">
+                        <i data-lucide="menu" class="w-5 h-5 text-slate-400"></i>
+                        <span class="text-[10px] mt-0.5">Plus</span>
+                    </button>
+
+                @elseif(Auth::user()->isMedecin())
+                    <!-- Médecin Navigation Basse -->
+                    <a href="{{ route('medecin.dashboard') }}" class="flex flex-col items-center justify-center py-1 px-3 rounded-xl text-center transition-all active:scale-95 {{ request()->routeIs('medecin.dashboard') ? 'text-brand-600 font-bold' : 'text-slate-400 font-medium' }}">
+                        <i data-lucide="layout-dashboard" class="w-5 h-5 {{ request()->routeIs('medecin.dashboard') ? 'text-brand-600 stroke-[2.5]' : 'text-slate-400' }}"></i>
+                        <span class="text-[10px] mt-0.5">Consultations</span>
+                    </a>
+
+                    <a href="{{ route('medecin.planning') }}" class="flex flex-col items-center justify-center py-1 px-3 rounded-xl text-center transition-all active:scale-95 {{ request()->routeIs('medecin.planning') ? 'text-brand-600 font-bold' : 'text-slate-400 font-medium' }}">
+                        <i data-lucide="calendar-days" class="w-5 h-5 {{ request()->routeIs('medecin.planning') ? 'text-brand-600 stroke-[2.5]' : 'text-slate-400' }}"></i>
+                        <span class="text-[10px] mt-0.5">Planning</span>
+                    </a>
+
+                    <a href="{{ route('notifications.index') }}" class="relative flex flex-col items-center justify-center py-1 px-3 rounded-xl text-center transition-all active:scale-95 {{ request()->routeIs('notifications*') ? 'text-brand-600 font-bold' : 'text-slate-400 font-medium' }}">
+                        <i data-lucide="bell" class="w-5 h-5 {{ request()->routeIs('notifications*') ? 'text-brand-600 stroke-[2.5]' : 'text-slate-400' }}"></i>
+                        @if($unread > 0)
+                            <span class="absolute top-1 right-3 w-2 h-2 rounded-full bg-rose-600"></span>
+                        @endif
+                        <span class="text-[10px] mt-0.5">Alertes</span>
+                    </a>
+
+                    <button type="button" @click="sidebarOpen = true" class="flex flex-col items-center justify-center py-1 px-3 rounded-xl text-center text-slate-400 font-medium transition-all active:scale-95">
+                        <i data-lucide="menu" class="w-5 h-5 text-slate-400"></i>
+                        <span class="text-[10px] mt-0.5">Plus</span>
+                    </button>
+
+                @elseif(Auth::user()->isSecretaire())
+                    <!-- Secrétaire Navigation Basse -->
+                    <a href="{{ route('secretaire.guichet') }}" class="flex flex-col items-center justify-center py-1 px-4 rounded-xl text-center transition-all active:scale-95 {{ request()->routeIs('secretaire.guichet') ? 'text-amber-600 font-bold' : 'text-slate-400 font-medium' }}">
+                        <i data-lucide="clipboard-list" class="w-5 h-5 {{ request()->routeIs('secretaire.guichet') ? 'text-amber-600 stroke-[2.5]' : 'text-slate-400' }}"></i>
+                        <span class="text-[10px] mt-0.5">Guichet</span>
+                    </a>
+
+                    <a href="{{ route('notifications.index') }}" class="relative flex flex-col items-center justify-center py-1 px-4 rounded-xl text-center transition-all active:scale-95 {{ request()->routeIs('notifications*') ? 'text-brand-600 font-bold' : 'text-slate-400 font-medium' }}">
+                        <i data-lucide="bell" class="w-5 h-5 {{ request()->routeIs('notifications*') ? 'text-brand-600 stroke-[2.5]' : 'text-slate-400' }}"></i>
+                        @if($unread > 0)
+                            <span class="absolute top-1 right-4 w-2 h-2 rounded-full bg-rose-600"></span>
+                        @endif
+                        <span class="text-[10px] mt-0.5">Alertes</span>
+                    </a>
+
+                    <button type="button" @click="sidebarOpen = true" class="flex flex-col items-center justify-center py-1 px-4 rounded-xl text-center text-slate-400 font-medium transition-all active:scale-95">
+                        <i data-lucide="menu" class="w-5 h-5 text-slate-400"></i>
+                        <span class="text-[10px] mt-0.5">Plus</span>
+                    </button>
+
+                @elseif(Auth::user()->isAdmin())
+                    <!-- Admin Navigation Basse -->
+                    <a href="{{ route('admin.dashboard') }}" class="flex flex-col items-center justify-center py-1 px-2 rounded-xl text-center min-w-[54px] transition-all active:scale-95 {{ request()->routeIs('admin.dashboard') ? 'text-brand-600 font-bold' : 'text-slate-400 font-medium' }}">
+                        <i data-lucide="layout-dashboard" class="w-5 h-5 {{ request()->routeIs('admin.dashboard') ? 'text-brand-600 stroke-[2.5]' : 'text-slate-400' }}"></i>
+                        <span class="text-[10px] mt-0.5">Tableau</span>
+                    </a>
+
+                    <a href="{{ route('admin.medecins.index') }}" class="flex flex-col items-center justify-center py-1 px-2 rounded-xl text-center min-w-[54px] transition-all active:scale-95 {{ request()->routeIs('admin.medecins*') ? 'text-brand-600 font-bold' : 'text-slate-400 font-medium' }}">
+                        <i data-lucide="stethoscope" class="w-5 h-5 {{ request()->routeIs('admin.medecins*') ? 'text-brand-600 stroke-[2.5]' : 'text-slate-400' }}"></i>
+                        <span class="text-[10px] mt-0.5">Médecins</span>
+                    </a>
+
+                    <a href="{{ route('admin.specialites.index') }}" class="flex flex-col items-center justify-center py-1 px-2 rounded-xl text-center min-w-[54px] transition-all active:scale-95 {{ request()->routeIs('admin.specialites*') ? 'text-brand-600 font-bold' : 'text-slate-400 font-medium' }}">
+                        <i data-lucide="layers" class="w-5 h-5 {{ request()->routeIs('admin.specialites*') ? 'text-brand-600 stroke-[2.5]' : 'text-slate-400' }}"></i>
+                        <span class="text-[10px] mt-0.5">Spécialités</span>
+                    </a>
+
+                    <a href="{{ route('admin.patients.index') }}" class="flex flex-col items-center justify-center py-1 px-2 rounded-xl text-center min-w-[54px] transition-all active:scale-95 {{ request()->routeIs('admin.patients*') ? 'text-brand-600 font-bold' : 'text-slate-400 font-medium' }}">
+                        <i data-lucide="users" class="w-5 h-5 {{ request()->routeIs('admin.patients*') ? 'text-brand-600 stroke-[2.5]' : 'text-slate-400' }}"></i>
+                        <span class="text-[10px] mt-0.5">Patients</span>
+                    </a>
+
+                    <button type="button" @click="sidebarOpen = true" class="flex flex-col items-center justify-center py-1 px-2 rounded-xl text-center min-w-[54px] text-slate-400 font-medium transition-all active:scale-95">
+                        <i data-lucide="menu" class="w-5 h-5 text-slate-400"></i>
+                        <span class="text-[10px] mt-0.5">Plus</span>
+                    </button>
+                @endif
+            </nav>
+
             <!-- Footer sobre -->
-            <footer class="border-t border-slate-200/80 bg-white px-4 sm:px-8 py-4 text-xs text-slate-400 flex flex-col sm:flex-row items-center justify-between gap-2 mt-auto">
+            <footer class="border-t border-slate-200/80 bg-white px-4 sm:px-8 py-4 text-xs text-slate-400 flex flex-col sm:flex-row items-center justify-between gap-2 mt-auto mb-16 lg:mb-0">
                 <div class="flex items-center gap-2">
                     <span class="font-bold text-slate-700">Hôpital RDV</span>
                     <span>&copy; {{ date('Y') }} — Solution de Gestion des Consultations Médicales.</span>

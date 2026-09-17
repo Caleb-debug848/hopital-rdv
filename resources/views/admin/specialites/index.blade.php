@@ -18,7 +18,7 @@
             <h1 class="text-xl font-heading font-extrabold text-slate-900 tracking-tight">Spécialités Médicales</h1>
             <p class="text-xs text-slate-500">Organisation des pôles de consultations et départements de l'hôpital</p>
         </div>
-        <button type="button" @click="addSpecialiteModal = true" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs shadow-xs transition">
+        <button type="button" @click="addSpecialiteModal = true" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs shadow-xs transition min-h-[44px]">
             <i data-lucide="plus" class="w-4 h-4 text-brand-400"></i>
             Ajouter une Spécialité
         </button>

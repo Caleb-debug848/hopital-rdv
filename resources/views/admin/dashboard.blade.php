@@ -33,30 +33,30 @@
             </span>
         </div>
 
-        <div class="grid grid-cols-2 sm:grid-cols-6 gap-3">
-            <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-card text-center">
+        <div class="grid grid-cols-3 sm:grid-cols-6 gap-2 sm:gap-3">
+            <div class="bg-white p-3.5 sm:p-4 rounded-2xl border border-slate-200/80 shadow-card text-center">
                 <div class="text-[10px] font-bold text-emerald-600 uppercase">Confirmés</div>
-                <div class="text-2xl font-heading font-extrabold text-emerald-600 mt-1">{{ $statsAujourdhui['confirmes'] }}</div>
+                <div class="text-xl sm:text-2xl font-heading font-extrabold text-emerald-600 mt-1">{{ $statsAujourdhui['confirmes'] }}</div>
             </div>
-            <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-card text-center">
+            <div class="bg-white p-3.5 sm:p-4 rounded-2xl border border-slate-200/80 shadow-card text-center">
                 <div class="text-[10px] font-bold text-amber-600 uppercase">En attente</div>
-                <div class="text-2xl font-heading font-extrabold text-amber-600 mt-1">{{ $statsAujourdhui['en_attente'] }}</div>
+                <div class="text-xl sm:text-2xl font-heading font-extrabold text-amber-600 mt-1">{{ $statsAujourdhui['en_attente'] }}</div>
             </div>
-            <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-card text-center">
+            <div class="bg-white p-3.5 sm:p-4 rounded-2xl border border-slate-200/80 shadow-card text-center">
                 <div class="text-[10px] font-bold text-brand-600 uppercase">Arrivés</div>
-                <div class="text-2xl font-heading font-extrabold text-brand-600 mt-1">{{ $statsAujourdhui['arrives'] }}</div>
+                <div class="text-xl sm:text-2xl font-heading font-extrabold text-brand-600 mt-1">{{ $statsAujourdhui['arrives'] }}</div>
             </div>
-            <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-card text-center">
+            <div class="bg-white p-3.5 sm:p-4 rounded-2xl border border-slate-200/80 shadow-card text-center">
                 <div class="text-[10px] font-bold text-indigo-600 uppercase">Effectués</div>
-                <div class="text-2xl font-heading font-extrabold text-indigo-600 mt-1">{{ $statsAujourdhui['effectues'] }}</div>
+                <div class="text-xl sm:text-2xl font-heading font-extrabold text-indigo-600 mt-1">{{ $statsAujourdhui['effectues'] }}</div>
             </div>
-            <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-card text-center">
+            <div class="bg-white p-3.5 sm:p-4 rounded-2xl border border-slate-200/80 shadow-card text-center">
                 <div class="text-[10px] font-bold text-rose-600 uppercase">Annulés</div>
-                <div class="text-2xl font-heading font-extrabold text-rose-600 mt-1">{{ $statsAujourdhui['annules'] }}</div>
+                <div class="text-xl sm:text-2xl font-heading font-extrabold text-rose-600 mt-1">{{ $statsAujourdhui['annules'] }}</div>
             </div>
-            <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-card text-center">
+            <div class="bg-white p-3.5 sm:p-4 rounded-2xl border border-slate-200/80 shadow-card text-center">
                 <div class="text-[10px] font-bold text-slate-400 uppercase">Absents</div>
-                <div class="text-2xl font-heading font-extrabold text-slate-500 mt-1">{{ $statsAujourdhui['absents'] }}</div>
+                <div class="text-xl sm:text-2xl font-heading font-extrabold text-slate-500 mt-1">{{ $statsAujourdhui['absents'] }}</div>
             </div>
         </div>
     </div>
@@ -137,7 +137,33 @@
                 <a href="{{ route('secretaire.guichet') }}" class="text-xs font-bold text-brand-600 hover:underline">Vue Guichet &rarr;</a>
             </div>
 
-            <div class="overflow-x-auto">
+            <!-- 1. Vue Mobile pour Smartphones (< 640px) -->
+            <div class="block sm:hidden space-y-2.5">
+                @foreach($derniersRdv as $rdv)
+                    <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200/70 space-y-2">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-bold text-slate-800">
+                                {{ \Carbon\Carbon::parse($rdv->date_rdv)->format('d/m/Y') }} à {{ substr($rdv->heure_rdv, 0, 5) }}
+                            </span>
+                            <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10px] font-bold border {{ $rdv->statut_badge['bg'] }}">
+                                <span class="w-1.5 h-1.5 rounded-full {{ $rdv->statut_badge['dot'] }}"></span>
+                                {{ $rdv->statut_badge['label'] }}
+                            </span>
+                        </div>
+                        <div class="flex items-center justify-between text-xs">
+                            <span class="font-bold text-slate-900">{{ $rdv->patient->user->full_name }}</span>
+                            <span class="font-mono text-[10px] text-slate-400">{{ $rdv->reference_rdv }}</span>
+                        </div>
+                        <div class="text-[11px] text-slate-500 flex items-center justify-between pt-1 border-t border-slate-200/50">
+                            <span>Dr. {{ $rdv->medecin->nom_complet }}</span>
+                            <span class="text-brand-600 font-medium">{{ $rdv->specialite->nom }}</span>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+
+            <!-- 2. Vue Tableau pour Ordinateurs (>= 640px) -->
+            <div class="hidden sm:block overflow-x-auto">
                 <table class="w-full text-left text-xs">
                     <thead>
                         <tr class="border-b border-slate-200/80 text-slate-400 font-bold uppercase tracking-wider text-[10px]">

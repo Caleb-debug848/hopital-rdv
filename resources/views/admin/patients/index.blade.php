@@ -25,7 +25,43 @@
 
     <!-- Tableau des Patients -->
     <div class="bg-white rounded-2xl border border-slate-200/80 shadow-card overflow-hidden p-6 space-y-4">
-        <div class="overflow-x-auto">
+        <!-- 1. Vue Cartes Mobile pour Smartphones (< 640px) -->
+        <div class="block sm:hidden space-y-3">
+            @foreach($patients as $patient)
+                <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-3">
+                    <div class="flex items-center justify-between">
+                        <span class="px-2.5 py-1 rounded-lg bg-white border border-slate-200 font-mono font-bold text-[11px] text-slate-900 shadow-2xs">
+                            {{ $patient->numero_patient }}
+                        </span>
+                        <span class="px-2.5 py-0.5 rounded-full bg-brand-50 text-brand-700 border border-brand-200 text-[11px] font-bold">
+                            {{ $patient->rendez_vous_count }} consultation(s)
+                        </span>
+                    </div>
+
+                    <div>
+                        <div class="font-heading font-extrabold text-sm text-slate-900">{{ $patient->user->full_name }}</div>
+                        <div class="text-xs text-slate-500 mt-1 flex flex-col gap-1">
+                            <a href="tel:{{ $patient->user->telephone }}" class="text-brand-600 font-mono font-bold inline-flex items-center gap-1.5 hover:underline">
+                                <i data-lucide="phone" class="w-3.5 h-3.5 text-slate-400"></i>
+                                {{ $patient->user->telephone }}
+                            </a>
+                            <a href="mailto:{{ $patient->user->email }}" class="text-slate-600 inline-flex items-center gap-1.5 hover:underline truncate">
+                                <i data-lucide="mail" class="w-3.5 h-3.5 text-slate-400"></i>
+                                {{ $patient->user->email }}
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center justify-between text-[11px] text-slate-400 pt-2 border-t border-slate-200/60">
+                        <span>Genre : <strong class="text-slate-700">{{ $patient->sexe ?? '—' }}</strong></span>
+                        <span>Inscrit le {{ $patient->created_at->format('d/m/Y') }}</span>
+                    </div>
+                </div>
+            @endforeach
+        </div>
+
+        <!-- 2. Vue Tableau Grand Écran (>= 640px) -->
+        <div class="hidden sm:block overflow-x-auto">
             <table class="w-full text-left text-xs">
                 <thead>
                     <tr class="border-b border-slate-200/80 text-slate-400 font-bold uppercase tracking-wider text-[10px]">

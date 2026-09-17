@@ -32,7 +32,7 @@
         <div class="bg-slate-100/90 p-1.5 rounded-2xl flex items-center gap-1 border border-slate-200/60 relative z-10">
             <button type="button" 
                     @click="activeTab = 'login'; $nextTick(() => { if (window.lucide) lucide.createIcons(); })"
-                    class="flex-1 py-2.5 px-4 rounded-xl text-xs font-extrabold transition-all duration-300 flex items-center justify-center gap-2"
+                    class="flex-1 py-2.5 px-4 rounded-xl text-xs font-extrabold transition-all duration-300 flex items-center justify-center gap-2 min-h-[44px]"
                     :class="activeTab === 'login' ? 'bg-white text-slate-900 shadow-sm border border-slate-200/50' : 'text-slate-500 hover:text-slate-900'">
                 <i data-lucide="lock" class="w-3.5 h-3.5" :class="activeTab === 'login' ? 'text-brand-600' : 'text-slate-400'"></i>
                 <span>Connexion</span>
@@ -40,7 +40,7 @@
 
             <button type="button" 
                     @click="activeTab = 'register'; $nextTick(() => { if (window.lucide) lucide.createIcons(); })"
-                    class="flex-1 py-2.5 px-4 rounded-xl text-xs font-extrabold transition-all duration-300 flex items-center justify-center gap-2"
+                    class="flex-1 py-2.5 px-4 rounded-xl text-xs font-extrabold transition-all duration-300 flex items-center justify-center gap-2 min-h-[44px]"
                     :class="activeTab === 'register' ? 'bg-white text-slate-900 shadow-sm border border-slate-200/50' : 'text-slate-500 hover:text-slate-900'">
                 <i data-lucide="user-plus" class="w-3.5 h-3.5" :class="activeTab === 'register' ? 'text-brand-600' : 'text-slate-400'"></i>
                 <span>Créer un Compte</span>
@@ -82,7 +82,7 @@
                         </div>
                         <input type="email" name="email" value="{{ old('email') }}" required autofocus
                                placeholder="votre.email@exemple.com"
-                               class="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-300 text-xs font-medium focus:outline-none focus:ring-4 focus:ring-brand-500/10 focus:border-brand-500 transition-all">
+                               class="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-300 text-xs font-medium focus:outline-none focus:ring-4 focus:ring-brand-500/10 focus:border-brand-500 transition-all min-h-[44px]">
                     </div>
                 </div>
 
@@ -94,22 +94,22 @@
                         </div>
                         <input :type="showPassword ? 'text' : 'password'" name="password" required
                                placeholder="••••••••"
-                               class="w-full pl-10 pr-11 py-3 rounded-xl border border-slate-300 text-xs font-medium focus:outline-none focus:ring-4 focus:ring-brand-500/10 focus:border-brand-500 transition-all">
+                               class="w-full pl-10 pr-11 py-3 rounded-xl border border-slate-300 text-xs font-medium focus:outline-none focus:ring-4 focus:ring-brand-500/10 focus:border-brand-500 transition-all min-h-[44px]">
                         <button type="button" @click="showPassword = !showPassword; $nextTick(() => { if (window.lucide) lucide.createIcons(); })" 
-                                class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600 transition">
+                                class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600 transition p-2 min-h-[44px]">
                             <i :data-lucide="showPassword ? 'eye-off' : 'eye'" class="w-4 h-4"></i>
                         </button>
                     </div>
                 </div>
 
                 <div class="flex items-center justify-between text-xs pt-1">
-                    <label class="flex items-center gap-2 text-slate-600 cursor-pointer select-none">
-                        <input type="checkbox" name="remember" class="rounded border-slate-300 text-brand-600 focus:ring-brand-500">
+                    <label class="flex items-center gap-2 text-slate-600 cursor-pointer select-none py-1">
+                        <input type="checkbox" name="remember" class="w-4 h-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500">
                         <span class="text-xs">Rester connecté</span>
                     </label>
                 </div>
 
-                <button type="submit" class="w-full py-3.5 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 active:scale-[0.99] text-white font-bold text-xs shadow-md shadow-slate-900/10 transition-all flex items-center justify-center gap-2">
+                <button type="submit" class="w-full py-3.5 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 active:scale-[0.99] text-white font-bold text-xs shadow-md shadow-slate-900/10 transition-all flex items-center justify-center gap-2 min-h-[48px]">
                     <i data-lucide="log-in" class="w-4 h-4 text-brand-400"></i>
                     <span>Se connecter à mon compte</span>
                 </button>
@@ -141,12 +141,12 @@
                     <div>
                         <label class="block text-[10px] font-bold text-slate-700 uppercase tracking-wider mb-1">Nom *</label>
                         <input type="text" name="nom" value="{{ old('nom') }}" required placeholder="Ex: Kouamé"
-                               class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-medium focus:ring-4 focus:ring-brand-500/10 focus:border-brand-500 focus:outline-none transition">
+                               class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-medium focus:ring-4 focus:ring-brand-500/10 focus:border-brand-500 focus:outline-none transition min-h-[44px]">
                     </div>
                     <div>
                         <label class="block text-[10px] font-bold text-slate-700 uppercase tracking-wider mb-1">Prénom *</label>
                         <input type="text" name="prenom" value="{{ old('prenom') }}" required placeholder="Ex: Awa"
-                               class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-medium focus:ring-4 focus:ring-brand-500/10 focus:border-brand-500 focus:outline-none transition">
+                               class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-medium focus:ring-4 focus:ring-brand-500/10 focus:border-brand-500 focus:outline-none transition min-h-[44px]">
                     </div>
                 </div>
 
@@ -154,11 +154,11 @@
                     <div>
                         <label class="block text-[10px] font-bold text-slate-700 uppercase tracking-wider mb-1">Téléphone *</label>
                         <input type="tel" name="telephone" value="{{ old('telephone') }}" required placeholder="+225 07..."
-                               class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-medium focus:ring-4 focus:ring-brand-500/10 focus:border-brand-500 focus:outline-none transition">
+                               class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-medium focus:ring-4 focus:ring-brand-500/10 focus:border-brand-500 focus:outline-none transition min-h-[44px]">
                     </div>
                     <div>
                         <label class="block text-[10px] font-bold text-slate-700 uppercase tracking-wider mb-1">Sexe</label>
-                        <select name="sexe" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-medium focus:ring-4 focus:ring-brand-500/10 focus:border-brand-500 focus:outline-none transition bg-white">
+                        <select name="sexe" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-medium focus:ring-4 focus:ring-brand-500/10 focus:border-brand-500 focus:outline-none transition bg-white min-h-[44px]">
                             <option value="">Sélectionner</option>
                             <option value="F" {{ old('sexe') == 'F' ? 'selected' : '' }}>Féminin</option>
                             <option value="M" {{ old('sexe') == 'M' ? 'selected' : '' }}>Masculin</option>
@@ -170,19 +170,19 @@
                     <div>
                         <label class="block text-[10px] font-bold text-slate-700 uppercase tracking-wider mb-1">Date de naissance</label>
                         <input type="date" name="date_naissance" value="{{ old('date_naissance') }}"
-                               class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-medium focus:ring-4 focus:ring-brand-500/10 focus:border-brand-500 focus:outline-none transition">
+                               class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-medium focus:ring-4 focus:ring-brand-500/10 focus:border-brand-500 focus:outline-none transition min-h-[44px]">
                     </div>
                     <div>
                         <label class="block text-[10px] font-bold text-slate-700 uppercase tracking-wider mb-1">Contact d'urgence</label>
                         <input type="text" name="contact_urgence" value="{{ old('contact_urgence') }}" placeholder="Ex: Frère (+225...)"
-                               class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-medium focus:ring-4 focus:ring-brand-500/10 focus:border-brand-500 focus:outline-none transition">
+                               class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-medium focus:ring-4 focus:ring-brand-500/10 focus:border-brand-500 focus:outline-none transition min-h-[44px]">
                     </div>
                 </div>
 
                 <div>
                     <label class="block text-[10px] font-bold text-slate-700 uppercase tracking-wider mb-1">Adresse Email *</label>
                     <input type="email" name="email" value="{{ old('email') }}" required placeholder="votre.email@exemple.com"
-                           class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-medium focus:ring-4 focus:ring-brand-500/10 focus:border-brand-500 focus:outline-none transition">
+                           class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-medium focus:ring-4 focus:ring-brand-500/10 focus:border-brand-500 focus:outline-none transition min-h-[44px]">
                 </div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -190,9 +190,9 @@
                         <label class="block text-[10px] font-bold text-slate-700 uppercase tracking-wider mb-1">Mot de passe *</label>
                         <div class="relative">
                             <input :type="showRegPassword ? 'text' : 'password'" name="password" required placeholder="Min. 6 caractères"
-                                   class="w-full pl-3.5 pr-10 py-2.5 rounded-xl border border-slate-300 text-xs font-medium focus:ring-4 focus:ring-brand-500/10 focus:border-brand-500 focus:outline-none transition">
+                                   class="w-full pl-3.5 pr-10 py-2.5 rounded-xl border border-slate-300 text-xs font-medium focus:ring-4 focus:ring-brand-500/10 focus:border-brand-500 focus:outline-none transition min-h-[44px]">
                             <button type="button" @click="showRegPassword = !showRegPassword; $nextTick(() => { if (window.lucide) lucide.createIcons(); })" 
-                                    class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 transition"
+                                    class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 transition p-2 min-h-[44px]"
                                     title="Afficher/Masquer le mot de passe">
                                 <i :data-lucide="showRegPassword ? 'eye-off' : 'eye'" class="w-4 h-4"></i>
                             </button>
@@ -202,9 +202,9 @@
                         <label class="block text-[10px] font-bold text-slate-700 uppercase tracking-wider mb-1">Confirmer *</label>
                         <div class="relative">
                             <input :type="showPasswordConfirm ? 'text' : 'password'" name="password_confirmation" required placeholder="Répéter mot de passe"
-                                   class="w-full pl-3.5 pr-10 py-2.5 rounded-xl border border-slate-300 text-xs font-medium focus:ring-4 focus:ring-brand-500/10 focus:border-brand-500 focus:outline-none transition">
+                                   class="w-full pl-3.5 pr-10 py-2.5 rounded-xl border border-slate-300 text-xs font-medium focus:ring-4 focus:ring-brand-500/10 focus:border-brand-500 focus:outline-none transition min-h-[44px]">
                             <button type="button" @click="showPasswordConfirm = !showPasswordConfirm; $nextTick(() => { if (window.lucide) lucide.createIcons(); })" 
-                                    class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 transition"
+                                    class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 transition p-2 min-h-[44px]"
                                     title="Afficher/Masquer la confirmation">
                                 <i :data-lucide="showPasswordConfirm ? 'eye-off' : 'eye'" class="w-4 h-4"></i>
                             </button>
@@ -212,7 +212,7 @@
                     </div>
                 </div>
 
-                <button type="submit" class="w-full py-3.5 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 active:scale-[0.99] text-white font-bold text-xs shadow-md shadow-slate-900/10 transition-all flex items-center justify-center gap-2">
+                <button type="submit" class="w-full py-3.5 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 active:scale-[0.99] text-white font-bold text-xs shadow-md shadow-slate-900/10 transition-all flex items-center justify-center gap-2 min-h-[48px]">
                     <i data-lucide="user-check" class="w-4 h-4 text-emerald-400"></i>
                     <span>Créer mon compte patient</span>
                 </button>
