@@ -73,8 +73,12 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::delete('/utilisateurs/{user}', [UserController::class, 'destroy'])->name('users.destroy');
     Route::get('/medecins', [AdminController::class, 'medecins'])->name('medecins.index');
     Route::post('/medecins', [AdminController::class, 'storeMedecin'])->name('medecins.store');
+    Route::put('/medecins/{medecin}', [AdminController::class, 'updateMedecin'])->name('medecins.update');
+    Route::delete('/medecins/{medecin}', [AdminController::class, 'destroyMedecin'])->name('medecins.destroy');
     Route::post('/medecins/{medecin}/toggle', [AdminController::class, 'toggleMedecinStatut'])->name('medecins.toggle');
     Route::get('/specialites', [AdminController::class, 'specialites'])->name('specialites.index');
     Route::post('/specialites', [AdminController::class, 'storeSpecialite'])->name('specialites.store');
+    Route::put('/specialites/{specialite}', [AdminController::class, 'updateSpecialite'])->name('specialites.update');
+    Route::delete('/specialites/{specialite}', [AdminController::class, 'destroySpecialite'])->name('specialites.destroy');
     Route::get('/patients', [AdminController::class, 'patients'])->name('patients.index');
 });

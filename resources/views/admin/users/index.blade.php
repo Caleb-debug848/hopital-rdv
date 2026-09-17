@@ -1,13 +1,32 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="space-y-6" x-data="{ createUserModal: false, selectedRole: 'patient', editUserModal: false, editingUser: {} }">
+<div class="space-y-6" 
+     x-data="{ 
+         createUserModal: {{ $errors->any() && !old('_method') ? 'true' : 'false' }}, 
+         selectedRole: '{{ old('role', 'patient') }}', 
+         editUserModal: {{ $errors->any() && old('_method') === 'PUT' ? 'true' : 'false' }}, 
+         showCreatePass: false,
+         showEditPass: false,
+         editingUser: {
+             id: '',
+             nom: '',
+             prenom: '',
+             email: '',
+             telephone: '',
+             role: 'patient'
+         },
+         openEdit(u) {
+             this.editingUser = { ...u };
+             this.editUserModal = true;
+         }
+     }">
 
     <!-- En-tête -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
             <h1 class="text-xl font-heading font-extrabold text-slate-900 tracking-tight">Gestion des Comptes & Rôles</h1>
-            <p class="text-xs text-slate-500">Administration centrale des accès : Administrateurs, Secrétariat, Médecins et Patients</p>
+            <p class="text-xs text-slate-500">Administration centrale des accès : Direction, Secrétariat, Médecins et Patients</p>
         </div>
         <button type="button" @click="createUserModal = true" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs shadow-xs transition">
             <i data-lucide="user-plus" class="w-4 h-4 text-brand-400"></i>
@@ -58,10 +77,10 @@
                 <input type="hidden" name="role" value="{{ $role }}">
             @endif
             <input type="text" name="search" value="{{ $search }}" placeholder="Rechercher par nom, prénom, email ou téléphone..."
-                   class="w-full px-4 py-2 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-brand-500 focus:outline-none font-medium">
-            <button type="submit" class="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5">
+                   class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-brand-500 focus:outline-none font-medium">
+            <button type="submit" class="px-5 py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-xs">
                 <i data-lucide="search" class="w-3.5 h-3.5"></i>
-                Filtrer
+                Rechercher
             </button>
         </form>
     </div>
@@ -70,10 +89,10 @@
     <div class="bg-white rounded-2xl border border-slate-200/80 shadow-card overflow-hidden p-6 space-y-4">
         <div class="flex items-center justify-between">
             <h2 class="text-base font-heading font-extrabold text-slate-900">
-                Liste des Utilisateurs Enregistrés
+                Liste des Comptes
             </h2>
-            <div class="text-xs text-slate-400">
-                Page {{ $users->currentPage() }} sur {{ $users->lastPage() }}
+            <div class="text-xs text-slate-400 font-medium">
+                Page {{ $users->currentPage() }} sur {{ $users->lastPage() }} ({{ $users->total() }} total)
             </div>
         </div>
 
@@ -88,7 +107,7 @@
                         <tr class="border-b border-slate-200/80 text-slate-400 font-bold uppercase tracking-wider text-[10px]">
                             <th class="py-3 px-3">Utilisateur</th>
                             <th class="py-3 px-3">Email & Téléphone</th>
-                            <th class="py-3 px-3">Rôle Assigné</th>
+                            <th class="py-3 px-3">Rôle</th>
                             <th class="py-3 px-3">Détails Profil</th>
                             <th class="py-3 px-3">Date Création</th>
                             <th class="py-3 px-3 text-right">Actions</th>
@@ -125,9 +144,9 @@
                                 </td>
                                 <td class="py-3.5 px-3 text-slate-500">
                                     @if($u->patient)
-                                        <span class="font-mono text-[11px]">Dossier : {{ $u->patient->numero_patient }}</span>
+                                        <span class="font-mono text-[11px] bg-slate-100 px-2 py-0.5 rounded">Dossier : {{ $u->patient->numero_patient }}</span>
                                     @elseif($u->medecin)
-                                        <span>{{ $u->medecin->specialite->nom ?? 'Praticien' }}</span>
+                                        <span class="font-semibold text-brand-600">{{ $u->medecin->specialite->nom ?? 'Praticien' }}</span>
                                     @else
                                         <span class="text-slate-400">—</span>
                                     @endif
@@ -136,15 +155,32 @@
                                     {{ $u->created_at->format('d/m/Y') }}
                                 </td>
                                 <td class="py-3.5 px-3 text-right">
-                                    @if($u->id !== Auth::id())
-                                        <form action="{{ route('admin.users.destroy', $u->id) }}" method="POST" onsubmit="return confirm('Confirmer la suppression de ce compte ?')" class="inline">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" title="Supprimer" class="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition">
-                                                <i data-lucide="trash-2" class="w-4 h-4"></i>
-                                            </button>
-                                        </form>
-                                    @endif
+                                    <div class="flex items-center justify-end gap-1.5">
+                                        <!-- Modifier -->
+                                        <button type="button" 
+                                                @click="openEdit({
+                                                    id: {{ $u->id }},
+                                                    nom: '{{ addslashes($u->nom) }}',
+                                                    prenom: '{{ addslashes($u->prenom) }}',
+                                                    email: '{{ addslashes($u->email) }}',
+                                                    telephone: '{{ addslashes($u->telephone) }}',
+                                                    role: '{{ $u->role }}'
+                                                })"
+                                                class="p-1.5 rounded-lg text-slate-400 hover:text-brand-600 hover:bg-brand-50 transition" title="Modifier">
+                                            <i data-lucide="edit-3" class="w-4 h-4"></i>
+                                        </button>
+
+                                        <!-- Supprimer -->
+                                        @if($u->id !== Auth::id())
+                                            <form action="{{ route('admin.users.destroy', $u->id) }}" method="POST" onsubmit="return confirm('Confirmer la suppression du compte de {{ addslashes($u->full_name) }} ?')" class="inline">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" title="Supprimer" class="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition">
+                                                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                                </button>
+                                            </form>
+                                        @endif
+                                    </div>
                                 </td>
                             </tr>
                         @endforeach
@@ -158,52 +194,64 @@
         @endif
     </div>
 
-    <!-- Modal Création Utilisateur -->
+    <!-- ============================================== -->
+    <!-- MODAL 1 : CRÉATION D'UN UTILISATEUR            -->
+    <!-- ============================================== -->
     <div x-show="createUserModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs" x-cloak>
         <div class="bg-white rounded-2xl p-6 sm:p-8 max-w-lg w-full space-y-4 shadow-xl border border-slate-200 max-h-[90vh] overflow-y-auto" @click.outside="createUserModal = false">
-            <div class="text-center space-y-1">
-                <h3 class="text-base font-heading font-extrabold text-slate-900">Créer un Nouveau Compte</h3>
-                <p class="text-xs text-slate-500">Ajout d'un nouvel utilisateur dans la base de données</p>
+            <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                <div>
+                    <h3 class="text-base font-heading font-extrabold text-slate-900">Créer un Nouveau Compte</h3>
+                    <p class="text-xs text-slate-500">Ajout d'un nouvel utilisateur dans la base de données</p>
+                </div>
+                <button type="button" @click="createUserModal = false" class="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100">
+                    <i data-lucide="x" class="w-4 h-4"></i>
+                </button>
             </div>
 
-            <form action="{{ route('admin.users.store') }}" method="POST" class="space-y-3">
+            <form action="{{ route('admin.users.store') }}" method="POST" class="space-y-3.5">
                 @csrf
                 <div class="grid grid-cols-2 gap-3">
                     <div>
                         <label class="block text-[10px] font-bold text-slate-700 uppercase tracking-wider mb-1">Nom *</label>
-                        <input type="text" name="nom" required placeholder="Nom" class="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs">
+                        <input type="text" name="nom" value="{{ old('nom') }}" required placeholder="Ex: Kouame" class="w-full px-3 py-2.5 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-brand-500 font-medium">
+                        @error('nom') <span class="text-[10px] text-rose-600 block mt-0.5">{{ $message }}</span> @enderror
                     </div>
                     <div>
                         <label class="block text-[10px] font-bold text-slate-700 uppercase tracking-wider mb-1">Prénom *</label>
-                        <input type="text" name="prenom" required placeholder="Prénom" class="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs">
+                        <input type="text" name="prenom" value="{{ old('prenom') }}" required placeholder="Ex: Marie" class="w-full px-3 py-2.5 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-brand-500 font-medium">
+                        @error('prenom') <span class="text-[10px] text-rose-600 block mt-0.5">{{ $message }}</span> @enderror
                     </div>
                 </div>
 
                 <div class="grid grid-cols-2 gap-3">
                     <div>
-                        <label class="block text-[10px] font-bold text-slate-700 uppercase tracking-wider mb-1">Email *</label>
-                        <input type="email" name="email" required placeholder="email@exemple.com" class="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs">
+                        <label class="block text-[10px] font-bold text-slate-700 uppercase tracking-wider mb-1">Email de connexion *</label>
+                        <input type="email" name="email" value="{{ old('email') }}" required placeholder="email@exemple.com" class="w-full px-3 py-2.5 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-brand-500 font-medium">
+                        @error('email') <span class="text-[10px] text-rose-600 block mt-0.5">{{ $message }}</span> @enderror
                     </div>
                     <div>
                         <label class="block text-[10px] font-bold text-slate-700 uppercase tracking-wider mb-1">Téléphone *</label>
-                        <input type="tel" name="telephone" required placeholder="+225 07..." class="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs">
+                        <input type="tel" name="telephone" value="{{ old('telephone') }}" required placeholder="+33 6..." class="w-full px-3 py-2.5 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-brand-500 font-medium">
+                        @error('telephone') <span class="text-[10px] text-rose-600 block mt-0.5">{{ $message }}</span> @enderror
                     </div>
                 </div>
 
                 <div>
-                    <label class="block text-[10px] font-bold text-slate-700 uppercase tracking-wider mb-1">Rôle *</label>
-                    <select name="role" x-model="selectedRole" required class="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs bg-white">
+                    <label class="block text-[10px] font-bold text-slate-700 uppercase tracking-wider mb-1">Rôle dans l'établissement *</label>
+                    <select name="role" x-model="selectedRole" required class="w-full px-3 py-2.5 rounded-xl border border-slate-300 text-xs bg-white focus:ring-2 focus:ring-brand-500 font-medium">
                         <option value="patient">Patient</option>
                         <option value="medecin">Médecin</option>
                         <option value="secretaire">Secrétaire / Guichet</option>
-                        <option value="admin">Administrateur</option>
+                        <option value="admin">Direction / Administrateur</option>
                     </select>
                 </div>
 
+                <!-- Champs conditionnels pour Médecin -->
                 <div x-show="selectedRole === 'medecin'" class="space-y-3 p-3 bg-slate-50 rounded-xl border border-slate-200" x-cloak>
                     <div>
                         <label class="block text-[10px] font-bold text-slate-700 uppercase tracking-wider mb-1">Spécialité Médicale *</label>
-                        <select name="specialite_id" class="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs bg-white">
+                        <select name="specialite_id" class="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs bg-white font-medium">
                             @foreach($specialites as $spe)
                                 <option value="{{ $spe->id }}">{{ $spe->nom }}</option>
                             @endforeach
@@ -211,17 +259,99 @@
                     </div>
                 </div>
 
+                <!-- Mot de passe obligatoire à la création -->
                 <div>
-                    <label class="block text-[10px] font-bold text-slate-700 uppercase tracking-wider mb-1">Mot de passe temporaire *</label>
-                    <input type="password" name="password" required placeholder="Minimum 6 caractères" class="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs">
+                    <label class="block text-[10px] font-bold text-slate-700 uppercase tracking-wider mb-1">Mot de passe de connexion *</label>
+                    <div class="relative">
+                        <input :type="showCreatePass ? 'text' : 'password'" name="password" required placeholder="Minimum 6 caractères" class="w-full px-3 py-2.5 pr-10 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-brand-500 font-medium">
+                        <button type="button" @click="showCreatePass = !showCreatePass" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+                            <i :data-lucide="showCreatePass ? 'eye-off' : 'eye'" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                    @error('password') <span class="text-[10px] text-rose-600 block mt-0.5">{{ $message }}</span> @enderror
                 </div>
 
-                <div class="flex items-center gap-3 pt-3">
+                <div class="flex items-center gap-3 pt-3 border-t border-slate-100">
                     <button type="button" @click="createUserModal = false" class="w-1/2 py-2.5 rounded-xl bg-slate-100 text-slate-700 text-xs font-bold hover:bg-slate-200 transition">
                         Annuler
                     </button>
-                    <button type="submit" class="w-1/2 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold shadow-xs transition">
+                    <button type="submit" class="w-1/2 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold shadow-xs transition flex items-center justify-center gap-2">
+                        <i data-lucide="check" class="w-4 h-4"></i>
                         Créer le Compte
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ============================================== -->
+    <!-- MODAL 2 : MODIFICATION D'UN UTILISATEUR        -->
+    <!-- ============================================== -->
+    <div x-show="editUserModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs" x-cloak>
+        <div class="bg-white rounded-2xl p-6 sm:p-8 max-w-lg w-full space-y-4 shadow-xl border border-slate-200 max-h-[90vh] overflow-y-auto" @click.outside="editUserModal = false">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                <div>
+                    <h3 class="text-base font-heading font-extrabold text-slate-900">Modifier l'Utilisateur</h3>
+                    <p class="text-xs text-slate-500">Mise à jour des coordonnées et des droits d'accès</p>
+                </div>
+                <button type="button" @click="editUserModal = false" class="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100">
+                    <i data-lucide="x" class="w-4 h-4"></i>
+                </button>
+            </div>
+
+            <form :action="'{{ url('admin/utilisateurs') }}/' + editingUser.id" method="POST" class="space-y-3.5">
+                @csrf
+                @method('PUT')
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-700 uppercase tracking-wider mb-1">Nom *</label>
+                        <input type="text" name="nom" x-model="editingUser.nom" required class="w-full px-3 py-2.5 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-brand-500 font-medium">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-700 uppercase tracking-wider mb-1">Prénom *</label>
+                        <input type="text" name="prenom" x-model="editingUser.prenom" required class="w-full px-3 py-2.5 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-brand-500 font-medium">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-700 uppercase tracking-wider mb-1">Email *</label>
+                        <input type="email" name="email" x-model="editingUser.email" required class="w-full px-3 py-2.5 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-brand-500 font-medium">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-700 uppercase tracking-wider mb-1">Téléphone *</label>
+                        <input type="tel" name="telephone" x-model="editingUser.telephone" required class="w-full px-3 py-2.5 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-brand-500 font-medium">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-700 uppercase tracking-wider mb-1">Rôle *</label>
+                    <select name="role" x-model="editingUser.role" required class="w-full px-3 py-2.5 rounded-xl border border-slate-300 text-xs bg-white font-medium">
+                        <option value="patient">Patient</option>
+                        <option value="medecin">Médecin</option>
+                        <option value="secretaire">Secrétaire / Guichet</option>
+                        <option value="admin">Direction / Administrateur</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-700 uppercase tracking-wider mb-1">Nouveau mot de passe (laisser vide pour ne pas changer)</label>
+                    <div class="relative">
+                        <input :type="showEditPass ? 'text' : 'password'" name="password" placeholder="Laisser vide pour conserver l'actuel" class="w-full px-3 py-2.5 pr-10 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-brand-500 font-medium">
+                        <button type="button" @click="showEditPass = !showEditPass" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+                            <i :data-lucide="showEditPass ? 'eye-off' : 'eye'" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-3 pt-3 border-t border-slate-100">
+                    <button type="button" @click="editUserModal = false" class="w-1/2 py-2.5 rounded-xl bg-slate-100 text-slate-700 text-xs font-bold hover:bg-slate-200 transition">
+                        Annuler
+                    </button>
+                    <button type="submit" class="w-1/2 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold shadow-xs transition flex items-center justify-center gap-2">
+                        <i data-lucide="save" class="w-4 h-4"></i>
+                        Mettre à jour
                     </button>
                 </div>
             </form>

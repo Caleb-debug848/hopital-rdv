@@ -126,7 +126,7 @@ class AdminController extends Controller
         $validated = $request->validate([
             'nom' => 'required|string|max:100',
             'prenom' => 'required|string|max:100',
-            'email' => 'required|email|max:191|unique:users',
+            'email' => 'required|email|max:191|unique:users,email',
             'telephone' => 'required|string|max:50',
             'specialite_id' => 'required|exists:specialites,id',
             'service' => 'nullable|string|max:100',
@@ -136,42 +136,107 @@ class AdminController extends Controller
             'heure_debut' => 'required|string',
             'heure_fin' => 'required|string',
             'password' => 'required|min:6',
+        ], [
+            'email.unique' => 'Cette adresse email est déjà utilisée par un autre compte.',
+            'password.required' => 'Le mot de passe de connexion est obligatoire (minimum 6 caractères).',
+            'jours_consultation.required' => 'Veuillez cocher au moins un jour de consultation pour le praticien.',
+            'specialite_id.required' => 'Veuillez sélectionner une spécialité médicale.',
         ]);
 
-        $user = User::create([
-            'nom' => $validated['nom'],
-            'prenom' => $validated['prenom'],
-            'email' => $validated['email'],
-            'telephone' => $validated['telephone'],
-            'role' => 'medecin',
-            'password' => Hash::make($validated['password']),
-            'email_verified_at' => now(),
-        ]);
-
-        $medecin = Medecin::create([
-            'user_id' => $user->id,
-            'specialite_id' => $validated['specialite_id'],
-            'service' => $validated['service'] ?? null,
-            'bureau' => $validated['bureau'] ?? null,
-            'biographie' => $validated['biographie'] ?? null,
-            'jours_consultation' => $validated['jours_consultation'],
-            'heure_debut_defaut' => $validated['heure_debut'],
-            'heure_fin_defaut' => $validated['heure_fin'],
-            'statut' => 'actif',
-        ]);
-
-        foreach ($validated['jours_consultation'] as $jour) {
-            Disponibilite::create([
-                'medecin_id' => $medecin->id,
-                'jour_semaine' => $jour,
-                'heure_debut' => $validated['heure_debut'],
-                'heure_fin' => $validated['heure_fin'],
-                'duree_creneau' => 30,
-                'is_active' => true,
+        return DB::transaction(function () use ($validated) {
+            $user = User::create([
+                'nom' => $validated['nom'],
+                'prenom' => $validated['prenom'],
+                'email' => $validated['email'],
+                'telephone' => $validated['telephone'],
+                'role' => 'medecin',
+                'password' => Hash::make($validated['password']),
+                'email_verified_at' => now(),
             ]);
-        }
 
-        return back()->with('success', 'Médecin ' . $medecin->nom_complet . ' créé avec succès !');
+            $medecin = Medecin::create([
+                'user_id' => $user->id,
+                'specialite_id' => $validated['specialite_id'],
+                'service' => $validated['service'] ?? 'Service Hospitalier',
+                'bureau' => $validated['bureau'] ?? 'Bureau Consultations',
+                'biographie' => $validated['biographie'] ?? null,
+                'jours_consultation' => $validated['jours_consultation'],
+                'heure_debut_defaut' => $validated['heure_debut'],
+                'heure_fin_defaut' => $validated['heure_fin'],
+                'statut' => 'actif',
+            ]);
+
+            foreach ($validated['jours_consultation'] as $jour) {
+                Disponibilite::create([
+                    'medecin_id' => $medecin->id,
+                    'jour_semaine' => $jour,
+                    'heure_debut' => $validated['heure_debut'],
+                    'heure_fin' => $validated['heure_fin'],
+                    'duree_creneau' => 30,
+                    'is_active' => true,
+                ]);
+            }
+
+            return back()->with('success', 'Médecin ' . $medecin->nom_complet . ' créé et activé avec succès !');
+        });
+    }
+
+    public function updateMedecin(Request $request, Medecin $medecin)
+    {
+        $validated = $request->validate([
+            'nom' => 'required|string|max:100',
+            'prenom' => 'required|string|max:100',
+            'email' => 'required|email|max:191|unique:users,email,' . $medecin->user_id,
+            'telephone' => 'required|string|max:50',
+            'specialite_id' => 'required|exists:specialites,id',
+            'service' => 'nullable|string|max:100',
+            'bureau' => 'nullable|string|max:50',
+            'biographie' => 'nullable|string',
+            'jours_consultation' => 'required|array|min:1',
+            'heure_debut' => 'required|string',
+            'heure_fin' => 'required|string',
+            'password' => 'nullable|min:6',
+        ]);
+
+        return DB::transaction(function () use ($validated, $medecin) {
+            $userData = [
+                'nom' => $validated['nom'],
+                'prenom' => $validated['prenom'],
+                'email' => $validated['email'],
+                'telephone' => $validated['telephone'],
+            ];
+
+            if (!empty($validated['password'])) {
+                $userData['password'] = Hash::make($validated['password']);
+            }
+
+            $medecin->user->update($userData);
+
+            $medecin->update([
+                'specialite_id' => $validated['specialite_id'],
+                'service' => $validated['service'] ?? 'Service Hospitalier',
+                'bureau' => $validated['bureau'] ?? 'Bureau Consultations',
+                'biographie' => $validated['biographie'] ?? null,
+                'jours_consultation' => $validated['jours_consultation'],
+                'heure_debut_defaut' => $validated['heure_debut'],
+                'heure_fin_defaut' => $validated['heure_fin'],
+            ]);
+
+            // Mettre à jour les disponibilités
+            Disponibilite::where('medecin_id', $medecin->id)->delete();
+            foreach ($validated['jours_consultation'] as $jour) {
+                Disponibilite::create([
+                    'medecin_id' => $medecin->id,
+                    'jour_semaine' => $jour,
+                    'heure_debut' => $validated['heure_debut'],
+                    'heure_fin' => $validated['heure_fin'],
+                    'duree_creneau' => 30,
+                    'is_active' => true,
+                ]);
+            }
+
+            return back()->with('success', 'Fiche du Médecin ' . $medecin->nom_complet . ' mise à jour avec succès !');
+        });
     }
 
     public function toggleMedecinStatut(Medecin $medecin)
@@ -179,7 +244,22 @@ class AdminController extends Controller
         $nouveauStatut = $medecin->statut === 'actif' ? 'inactif' : 'actif';
         $medecin->update(['statut' => $nouveauStatut]);
 
-        return back()->with('success', 'Statut du médecin mis à jour : ' . $nouveauStatut);
+        return back()->with('success', 'Statut du Dr. ' . $medecin->nom_complet . ' : ' . ucfirst($nouveauStatut));
+    }
+
+    public function destroyMedecin(Medecin $medecin)
+    {
+        return DB::transaction(function () use ($medecin) {
+            $nom = $medecin->nom_complet;
+            Disponibilite::where('medecin_id', $medecin->id)->delete();
+            $user = $medecin->user;
+            $medecin->delete();
+            if ($user) {
+                $user->delete();
+            }
+
+            return back()->with('success', 'Le médecin Dr. ' . $nom . ' a été supprimé.');
+        });
     }
 
     public function specialites()
@@ -191,9 +271,12 @@ class AdminController extends Controller
     public function storeSpecialite(Request $request)
     {
         $validated = $request->validate([
-            'nom' => 'required|string|max:100|unique:specialites',
+            'nom' => 'required|string|max:100|unique:specialites,nom',
             'description' => 'nullable|string',
             'icone' => 'nullable|string|max:50',
+        ], [
+            'nom.unique' => 'Cette spécialité existe déjà dans la base de données.',
+            'nom.required' => 'Le nom de la spécialité est obligatoire.',
         ]);
 
         Specialite::create([
@@ -204,7 +287,37 @@ class AdminController extends Controller
             'is_active' => true,
         ]);
 
-        return back()->with('success', 'Spécialité ajoutée avec succès !');
+        return back()->with('success', 'Spécialité [' . $validated['nom'] . '] ajoutée avec succès !');
+    }
+
+    public function updateSpecialite(Request $request, Specialite $specialite)
+    {
+        $validated = $request->validate([
+            'nom' => 'required|string|max:100|unique:specialites,nom,' . $specialite->id,
+            'description' => 'nullable|string',
+            'icone' => 'nullable|string|max:50',
+        ]);
+
+        $specialite->update([
+            'nom' => $validated['nom'],
+            'slug' => Str::slug($validated['nom']),
+            'description' => $validated['description'] ?? null,
+            'icone' => $validated['icone'] ?? 'stethoscope',
+        ]);
+
+        return back()->with('success', 'Spécialité [' . $specialite->nom . '] mise à jour avec succès !');
+    }
+
+    public function destroySpecialite(Specialite $specialite)
+    {
+        if ($specialite->medecins()->count() > 0) {
+            return back()->with('error', 'Impossible de supprimer cette spécialité car des médecins y sont affectés. Réaffectez d\'abord les médecins.');
+        }
+
+        $nom = $specialite->nom;
+        $specialite->delete();
+
+        return back()->with('success', 'Spécialité [' . $nom . '] supprimée avec succès.');
     }
 
     public function patients(Request $request)

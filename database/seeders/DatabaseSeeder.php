@@ -72,30 +72,34 @@ class DatabaseSeeder extends Seeder
 
         $specialites = [];
         foreach ($specialitesData as $data) {
-            $specialites[$data['slug']] = Specialite::create($data);
+            $specialites[$data['slug']] = Specialite::firstOrCreate(['slug' => $data['slug']], $data);
         }
 
         // 2. Administrateur
-        $admin = User::create([
-            'nom' => 'Kouassi',
-            'prenom' => 'Michel',
-            'email' => 'admin@hopital-rdv.com',
-            'telephone' => '+225 07 01 02 03 04',
-            'role' => 'admin',
-            'password' => Hash::make('password123'),
-            'email_verified_at' => now(),
-        ]);
+        $admin = User::firstOrCreate(
+            ['email' => 'admin@hopital-rdv.com'],
+            [
+                'nom' => 'Kouassi',
+                'prenom' => 'Michel',
+                'telephone' => '+225 07 01 02 03 04',
+                'role' => 'admin',
+                'password' => Hash::make('password123'),
+                'email_verified_at' => now(),
+            ]
+        );
 
         // 3. Secrétaire
-        $secretaire = User::create([
-            'nom' => 'Bakayoko',
-            'prenom' => 'Aminata',
-            'email' => 'secretaire@hopital-rdv.com',
-            'telephone' => '+225 05 11 22 33 44',
-            'role' => 'secretaire',
-            'password' => Hash::make('password123'),
-            'email_verified_at' => now(),
-        ]);
+        $secretaire = User::firstOrCreate(
+            ['email' => 'secretaire@hopital-rdv.com'],
+            [
+                'nom' => 'Bakayoko',
+                'prenom' => 'Aminata',
+                'telephone' => '+225 05 11 22 33 44',
+                'role' => 'secretaire',
+                'password' => Hash::make('password123'),
+                'email_verified_at' => now(),
+            ]
+        );
 
         // 4. Médecins
         $medecinsList = [
@@ -171,28 +175,34 @@ class DatabaseSeeder extends Seeder
 
         $medecins = [];
         foreach ($medecinsList as $m) {
-            $user = User::create(array_merge($m['user'], ['email_verified_at' => now()]));
-            $medecin = Medecin::create([
-                'user_id' => $user->id,
-                'specialite_id' => $specialites[$m['specialite']]->id,
-                'titre' => 'Dr',
-                'service' => $m['service'],
-                'bureau' => $m['bureau'],
-                'biographie' => $m['biographie'],
-                'jours_consultation' => $m['jours'],
-                'heure_debut_defaut' => $m['debut'],
-                'heure_fin_defaut' => $m['fin'],
-                'duree_consultation' => 30,
-                'statut' => 'actif',
-            ]);
+            $user = User::firstOrCreate(
+                ['email' => $m['user']['email']],
+                array_merge($m['user'], ['email_verified_at' => now()])
+            );
+            $medecin = Medecin::firstOrCreate(
+                ['user_id' => $user->id],
+                [
+                    'specialite_id' => $specialites[$m['specialite']]->id,
+                    'titre' => 'Dr',
+                    'service' => $m['service'],
+                    'bureau' => $m['bureau'],
+                    'biographie' => $m['biographie'],
+                    'jours_consultation' => $m['jours'],
+                    'heure_debut_defaut' => $m['debut'],
+                    'heure_fin_defaut' => $m['fin'],
+                    'duree_consultation' => 30,
+                    'statut' => 'actif',
+                ]
+            );
 
             // Création des disponibilités récurrentes
             foreach ($m['jours'] as $jour) {
-                Disponibilite::create([
+                Disponibilite::firstOrCreate([
                     'medecin_id' => $medecin->id,
                     'jour_semaine' => $jour,
                     'heure_debut' => $m['debut'],
                     'heure_fin' => $m['fin'],
+                ], [
                     'duree_creneau' => 30,
                     'is_active' => true,
                 ]);
@@ -263,14 +273,19 @@ class DatabaseSeeder extends Seeder
 
         $patients = [];
         foreach ($patientsData as $p) {
-            $u = User::create(array_merge($p['user'], ['email_verified_at' => now()]));
-            $patients[] = Patient::create([
-                'user_id' => $u->id,
-                'date_naissance' => $p['date_naissance'],
-                'sexe' => $p['sexe'],
-                'contact_urgence' => $p['contact_urgence'],
-                'adresse' => $p['adresse'],
-            ]);
+            $u = User::firstOrCreate(
+                ['email' => $p['user']['email']],
+                array_merge($p['user'], ['email_verified_at' => now()])
+            );
+            $patients[] = Patient::firstOrCreate(
+                ['user_id' => $u->id],
+                [
+                    'date_naissance' => $p['date_naissance'],
+                    'sexe' => $p['sexe'],
+                    'contact_urgence' => $p['contact_urgence'],
+                    'adresse' => $p['adresse'],
+                ]
+            );
         }
 
         // 6. Rendez-vous de test pour aujourd'hui et les prochains jours

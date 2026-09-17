@@ -415,6 +415,28 @@
                         </button>
                     </div>
                 @endif
+
+                @if($errors->any())
+                    <div x-data="{ show: true }" 
+                         x-show="show" 
+                         class="p-4 mb-3 text-rose-900 rounded-2xl bg-rose-50 border border-rose-200 shadow-sm text-xs space-y-2" 
+                         role="alert">
+                        <div class="flex items-center justify-between font-bold text-rose-800">
+                            <div class="flex items-center gap-2">
+                                <i data-lucide="alert-triangle" class="w-4 h-4 text-rose-600 flex-shrink-0"></i>
+                                <span>Erreur de saisie — Veuillez corriger les points suivants :</span>
+                            </div>
+                            <button type="button" @click="show = false" class="text-rose-400 hover:text-rose-700 p-1 rounded">
+                                <i data-lucide="x" class="w-3.5 h-3.5"></i>
+                            </button>
+                        </div>
+                        <ul class="list-disc list-inside space-y-1 text-rose-700 pl-2">
+                            @foreach($errors->all() as $error)
+                                <li>{{ $error }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                @endif
             </div>
 
             <!-- Contenu de la Vue -->
