@@ -34,29 +34,29 @@
         </div>
 
         <div class="grid grid-cols-3 sm:grid-cols-6 gap-2 sm:gap-3">
-            <div class="bg-white p-3.5 sm:p-4 rounded-2xl border border-slate-200/80 shadow-card text-center">
-                <div class="text-[10px] font-bold text-emerald-600 uppercase">Confirmés</div>
-                <div class="text-xl sm:text-2xl font-heading font-extrabold text-emerald-600 mt-1">{{ $statsAujourdhui['confirmes'] }}</div>
+            <div class="bg-white p-2 sm:p-3.5 rounded-xl sm:rounded-2xl border border-slate-200/80 shadow-card text-center">
+                <div class="text-[9px] sm:text-[10px] font-bold text-emerald-600 uppercase tracking-tight">Confirmés</div>
+                <div class="text-lg sm:text-2xl font-heading font-extrabold text-emerald-600 mt-0.5 sm:mt-1">{{ $statsAujourdhui['confirmes'] }}</div>
             </div>
-            <div class="bg-white p-3.5 sm:p-4 rounded-2xl border border-slate-200/80 shadow-card text-center">
-                <div class="text-[10px] font-bold text-amber-600 uppercase">En attente</div>
-                <div class="text-xl sm:text-2xl font-heading font-extrabold text-amber-600 mt-1">{{ $statsAujourdhui['en_attente'] }}</div>
+            <div class="bg-white p-2 sm:p-3.5 rounded-xl sm:rounded-2xl border border-slate-200/80 shadow-card text-center">
+                <div class="text-[9px] sm:text-[10px] font-bold text-amber-600 uppercase tracking-tight">En attente</div>
+                <div class="text-lg sm:text-2xl font-heading font-extrabold text-amber-600 mt-0.5 sm:mt-1">{{ $statsAujourdhui['en_attente'] }}</div>
             </div>
-            <div class="bg-white p-3.5 sm:p-4 rounded-2xl border border-slate-200/80 shadow-card text-center">
-                <div class="text-[10px] font-bold text-brand-600 uppercase">Arrivés</div>
-                <div class="text-xl sm:text-2xl font-heading font-extrabold text-brand-600 mt-1">{{ $statsAujourdhui['arrives'] }}</div>
+            <div class="bg-white p-2 sm:p-3.5 rounded-xl sm:rounded-2xl border border-slate-200/80 shadow-card text-center">
+                <div class="text-[9px] sm:text-[10px] font-bold text-brand-600 uppercase tracking-tight">Arrivés</div>
+                <div class="text-lg sm:text-2xl font-heading font-extrabold text-brand-600 mt-0.5 sm:mt-1">{{ $statsAujourdhui['arrives'] }}</div>
             </div>
-            <div class="bg-white p-3.5 sm:p-4 rounded-2xl border border-slate-200/80 shadow-card text-center">
-                <div class="text-[10px] font-bold text-indigo-600 uppercase">Effectués</div>
-                <div class="text-xl sm:text-2xl font-heading font-extrabold text-indigo-600 mt-1">{{ $statsAujourdhui['effectues'] }}</div>
+            <div class="bg-white p-2 sm:p-3.5 rounded-xl sm:rounded-2xl border border-slate-200/80 shadow-card text-center">
+                <div class="text-[9px] sm:text-[10px] font-bold text-indigo-600 uppercase tracking-tight">Effectués</div>
+                <div class="text-lg sm:text-2xl font-heading font-extrabold text-indigo-600 mt-0.5 sm:mt-1">{{ $statsAujourdhui['effectues'] }}</div>
             </div>
-            <div class="bg-white p-3.5 sm:p-4 rounded-2xl border border-slate-200/80 shadow-card text-center">
-                <div class="text-[10px] font-bold text-rose-600 uppercase">Annulés</div>
-                <div class="text-xl sm:text-2xl font-heading font-extrabold text-rose-600 mt-1">{{ $statsAujourdhui['annules'] }}</div>
+            <div class="bg-white p-2 sm:p-3.5 rounded-xl sm:rounded-2xl border border-slate-200/80 shadow-card text-center">
+                <div class="text-[9px] sm:text-[10px] font-bold text-rose-600 uppercase tracking-tight">Annulés</div>
+                <div class="text-lg sm:text-2xl font-heading font-extrabold text-rose-600 mt-0.5 sm:mt-1">{{ $statsAujourdhui['annules'] }}</div>
             </div>
-            <div class="bg-white p-3.5 sm:p-4 rounded-2xl border border-slate-200/80 shadow-card text-center">
-                <div class="text-[10px] font-bold text-slate-400 uppercase">Absents</div>
-                <div class="text-xl sm:text-2xl font-heading font-extrabold text-slate-500 mt-1">{{ $statsAujourdhui['absents'] }}</div>
+            <div class="bg-white p-2 sm:p-3.5 rounded-xl sm:rounded-2xl border border-slate-200/80 shadow-card text-center">
+                <div class="text-[9px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-tight">Absents</div>
+                <div class="text-lg sm:text-2xl font-heading font-extrabold text-slate-500 mt-0.5 sm:mt-1">{{ $statsAujourdhui['absents'] }}</div>
             </div>
         </div>
     </div>

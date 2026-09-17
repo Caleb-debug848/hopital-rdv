@@ -112,20 +112,6 @@
             </div>
         </div>
     </div>
-                <i data-lucide="check-circle" class="w-5 h-5"></i>
-            </div>
-        </div>
-
-        <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-card flex items-center justify-between">
-            <div>
-                <div class="text-[11px] font-bold text-rose-600 uppercase tracking-wider">Annulés</div>
-                <div class="text-2xl font-heading font-extrabold text-rose-600 mt-1">{{ $stats['annules'] }}</div>
-            </div>
-            <div class="w-10 h-10 rounded-xl bg-rose-50 border border-rose-100 flex items-center justify-center text-rose-600">
-                <i data-lucide="x-circle" class="w-5 h-5"></i>
-            </div>
-        </div>
-    </div>
 
     <!-- Section Prise de Rendez-vous Rapide par Spécialité (Quick Booking) -->
     <div class="space-y-4">

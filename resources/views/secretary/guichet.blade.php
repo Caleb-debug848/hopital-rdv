@@ -24,29 +24,29 @@
 
     <!-- Statistiques Opérationnelles du Guichet -->
     <div class="grid grid-cols-3 sm:grid-cols-6 gap-2 sm:gap-3">
-        <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-card text-center">
-            <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Total Jour</div>
-            <div class="text-2xl font-heading font-extrabold text-slate-900 mt-0.5">{{ $stats['total'] }}</div>
+        <div class="bg-white p-2 sm:p-3.5 rounded-xl sm:rounded-2xl border border-slate-200/80 shadow-card text-center">
+            <div class="text-[9px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-tight">Total Jour</div>
+            <div class="text-lg sm:text-2xl font-heading font-extrabold text-slate-900 mt-0.5">{{ $stats['total'] }}</div>
         </div>
-        <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-card text-center">
-            <div class="text-[10px] font-bold text-emerald-600 uppercase tracking-wider">Confirmés</div>
-            <div class="text-2xl font-heading font-extrabold text-emerald-600 mt-0.5">{{ $stats['confirme'] }}</div>
+        <div class="bg-white p-2 sm:p-3.5 rounded-xl sm:rounded-2xl border border-slate-200/80 shadow-card text-center">
+            <div class="text-[9px] sm:text-[10px] font-bold text-emerald-600 uppercase tracking-tight">Confirmés</div>
+            <div class="text-lg sm:text-2xl font-heading font-extrabold text-emerald-600 mt-0.5">{{ $stats['confirme'] }}</div>
         </div>
-        <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-card text-center">
-            <div class="text-[10px] font-bold text-brand-600 uppercase tracking-wider">Arrivés</div>
-            <div class="text-2xl font-heading font-extrabold text-brand-600 mt-0.5">{{ $stats['arrive'] }}</div>
+        <div class="bg-white p-2 sm:p-3.5 rounded-xl sm:rounded-2xl border border-slate-200/80 shadow-card text-center">
+            <div class="text-[9px] sm:text-[10px] font-bold text-brand-600 uppercase tracking-tight">Arrivés</div>
+            <div class="text-lg sm:text-2xl font-heading font-extrabold text-brand-600 mt-0.5">{{ $stats['arrive'] }}</div>
         </div>
-        <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-card text-center">
-            <div class="text-[10px] font-bold text-indigo-600 uppercase tracking-wider">Effectués</div>
-            <div class="text-2xl font-heading font-extrabold text-indigo-600 mt-0.5">{{ $stats['termine'] }}</div>
+        <div class="bg-white p-2 sm:p-3.5 rounded-xl sm:rounded-2xl border border-slate-200/80 shadow-card text-center">
+            <div class="text-[9px] sm:text-[10px] font-bold text-indigo-600 uppercase tracking-tight">Effectués</div>
+            <div class="text-lg sm:text-2xl font-heading font-extrabold text-indigo-600 mt-0.5">{{ $stats['termine'] }}</div>
         </div>
-        <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-card text-center">
-            <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Absents</div>
-            <div class="text-2xl font-heading font-extrabold text-slate-600 mt-0.5">{{ $stats['absent'] }}</div>
+        <div class="bg-white p-2 sm:p-3.5 rounded-xl sm:rounded-2xl border border-slate-200/80 shadow-card text-center">
+            <div class="text-[9px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-tight">Absents</div>
+            <div class="text-lg sm:text-2xl font-heading font-extrabold text-slate-600 mt-0.5">{{ $stats['absent'] }}</div>
         </div>
-        <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-card text-center">
-            <div class="text-[10px] font-bold text-rose-600 uppercase tracking-wider">Annulés</div>
-            <div class="text-2xl font-heading font-extrabold text-rose-600 mt-0.5">{{ $stats['annule'] }}</div>
+        <div class="bg-white p-2 sm:p-3.5 rounded-xl sm:rounded-2xl border border-slate-200/80 shadow-card text-center">
+            <div class="text-[9px] sm:text-[10px] font-bold text-rose-600 uppercase tracking-tight">Annulés</div>
+            <div class="text-lg sm:text-2xl font-heading font-extrabold text-rose-600 mt-0.5">{{ $stats['annule'] }}</div>
         </div>
     </div>
 

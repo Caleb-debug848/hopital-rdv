@@ -138,6 +138,7 @@
             <div class="p-8 text-center text-xs text-slate-400">
                 Aucun rendez-vous prévu pour aujourd'hui.
             </div>
+        @else
             <!-- 1. Vue Mobile pour Smartphones (< 640px) -->
             <div class="block sm:hidden space-y-3">
                 @foreach($rdvAujourdhui as $rdv)
