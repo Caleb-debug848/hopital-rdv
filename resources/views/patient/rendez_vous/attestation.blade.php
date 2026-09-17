@@ -88,7 +88,8 @@
                     <span>Convocation Officielle</span>
                 </div>
                 <div class="text-xs font-mono font-bold text-slate-700">Réf : {{ $rendezVous->reference_rdv }}</div>
-                <div class="text-[9.5px] text-slate-400">Émise le {{ now()->format('d/m/Y à H:i') }}</div>
+                <div class="text-[9.5px] text-slate-500">Réservation enregistrée le {{ $rendezVous->created_at->format('d/m/Y à H:i') }}</div>
+                <div class="text-[9px] text-slate-400">Édition / Impression le {{ now()->format('d/m/Y à H:i') }}</div>
             </div>
         </div>
 

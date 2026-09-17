@@ -141,8 +141,15 @@
                             </div>
                         </div>
 
+                        @php
+                            $waUrl = \App\Services\CommunicationHelper::generateWhatsAppUrl(
+                                $rdv->patient->user->telephone ?? '',
+                                \App\Services\CommunicationHelper::formatWhatsAppMessage($rdv)
+                            );
+                        @endphp
+
                         <!-- Actions Guichet Tactiles Rapides -->
-                        <div class="grid grid-cols-3 gap-2 pt-1">
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1">
                             @if($rdv->statut !== 'arrive' && $rdv->statut !== 'termine')
                                 <form action="{{ route('secretaire.rdv.status', $rdv->id) }}" method="POST" class="w-full">
                                     @csrf
@@ -164,6 +171,11 @@
                                     </button>
                                 </form>
                             @endif
+
+                            <a href="{{ $waUrl }}" target="_blank" class="w-full py-2.5 rounded-xl bg-emerald-50 active:bg-emerald-100 text-emerald-700 font-bold text-xs border border-emerald-200 flex items-center justify-center gap-1 min-h-[40px]" title="Envoyer le rappel sur WhatsApp">
+                                <i data-lucide="message-circle" class="w-3.5 h-3.5"></i>
+                                <span>WhatsApp</span>
+                            </a>
 
                             @if($rdv->statut !== 'absent' && $rdv->statut !== 'termine')
                                 <form action="{{ route('secretaire.rdv.status', $rdv->id) }}" method="POST" class="w-full">
@@ -220,6 +232,17 @@
                                 </td>
                                 <td class="py-3.5 px-3 text-right">
                                     <div class="inline-flex items-center gap-1.5">
+                                        <!-- Rappel WhatsApp Direct -->
+                                        @php
+                                            $waTableUrl = \App\Services\CommunicationHelper::generateWhatsAppUrl(
+                                                $rdv->patient->user->telephone ?? '',
+                                                \App\Services\CommunicationHelper::formatWhatsAppMessage($rdv)
+                                            );
+                                        @endphp
+                                        <a href="{{ $waTableUrl }}" target="_blank" title="Envoyer le rappel officiel sur WhatsApp" class="p-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 transition inline-flex items-center">
+                                            <i data-lucide="message-circle" class="w-3.5 h-3.5"></i>
+                                        </a>
+
                                         <!-- Marquer Arrivé -->
                                         @if($rdv->statut !== 'arrive' && $rdv->statut !== 'termine')
                                             <form action="{{ route('secretaire.rdv.status', $rdv->id) }}" method="POST" class="inline">

@@ -198,7 +198,10 @@ class AppointmentController extends Controller
             ]);
         }
 
-        return redirect()->route('patient.rendez-vous.show', $rdv->id)->with('success', 'Votre rendez-vous ' . $rdv->reference_rdv . ' a été réservé avec succès !');
+        // Envoi de l'e-mail officiel de confirmation
+        app(ReminderService::class)->sendConfirmation($rdv);
+
+        return redirect()->route('patient.rendez-vous.show', $rdv->id)->with('success', 'Votre rendez-vous ' . $rdv->reference_rdv . ' a été réservé avec succès ! Une confirmation vous a été transmise.');
     }
 
     public function show(RendezVous $rendezVous)
@@ -210,7 +213,11 @@ class AppointmentController extends Controller
 
         $rendezVous->load(['medecin.user', 'specialite', 'patient.user']);
 
-        return view('patient.rendez_vous.show', compact('rendezVous'));
+        $patientUser = $rendezVous->patient ? $rendezVous->patient->user : null;
+        $whatsappMessage = \App\Services\CommunicationHelper::formatWhatsAppMessage($rendezVous);
+        $whatsappUrl = \App\Services\CommunicationHelper::generateWhatsAppUrl($patientUser?->telephone, $whatsappMessage);
+
+        return view('patient.rendez_vous.show', compact('rendezVous', 'whatsappUrl', 'whatsappMessage'));
     }
 
     public function cancel(Request $request, RendezVous $rendezVous)

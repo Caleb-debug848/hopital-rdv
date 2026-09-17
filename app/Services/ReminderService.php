@@ -2,18 +2,21 @@
 
 namespace App\Services;
 
+use App\Mail\AppointmentConfirmationMail;
+use App\Mail\AppointmentReminderMail;
 use App\Models\Notification;
 use App\Models\RendezVous;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 
 class ReminderService
 {
     /**
-     * Simule l'envoi d'un rappel par SMS et Email pour un rendez-vous donné.
+     * Envoie un rappel officiel par E-mail réel et prépare la convocation WhatsApp.
      *
      * @param RendezVous $rdv
-     * @param string $type ('sms', 'email', 'both')
+     * @param string $type ('both', 'email', 'whatsapp')
      * @return array
      */
     public function sendReminder(RendezVous $rdv, string $type = 'both'): array
@@ -33,30 +36,69 @@ class ReminderService
         $heure = substr($rdv->heure_rdv, 0, 5);
         $doctorName = $medecin ? $medecin->nom_complet : 'votre praticien';
 
-        $smsContent = "Hôpital RDV : Rappel de votre consultation avec {$doctorName} le {$dateFr} à {$heure}. Réf: {$rdv->reference_rdv}. En cas d'empêchement, merci d'annuler en ligne.";
-        $emailSubject = "Rappel de consultation médicale - Réf: {$rdv->reference_rdv}";
+        $emailSent = false;
+        $emailError = null;
 
-        // Enregistrement dans les logs système
-        Log::info("SMS_REMINDER_SIMULATED: Sent to {$user->telephone} -> {$smsContent}");
-        Log::info("EMAIL_REMINDER_SIMULATED: Sent to {$user->email} -> {$emailSubject}");
+        // 1. Envoi de l'Email Réel avec Mailable médical haut de gamme
+        if (($type === 'both' || $type === 'email') && !empty($user->email)) {
+            try {
+                Mail::to($user->email)->send(new AppointmentReminderMail($rdv));
+                $emailSent = true;
+                Log::info("EMAIL_REMINDER_SUCCESS: Envoyé avec succès à {$user->email} pour RDV #{$rdv->reference_rdv}");
+            } catch (\Throwable $e) {
+                $emailError = $e->getMessage();
+                Log::warning("EMAIL_REMINDER_FAILED: Échec de l'envoi à {$user->email} ({$emailError}) - Basculement log sécurisé.");
+            }
+        }
 
-        // Création d'une notification dans l'espace patient
+        // 2. Génération du message et de l'URL WhatsApp (Strictement sans emoji)
+        $whatsappMessage = CommunicationHelper::formatWhatsAppMessage($rdv);
+        $whatsappUrl = CommunicationHelper::generateWhatsAppUrl($user->telephone, $whatsappMessage);
+
+        // 3. Notification interne dans l'espace patient
         Notification::create([
             'user_id' => $user->id,
             'type' => 'rappel',
             'titre' => 'Rappel de consultation : ' . $rdv->reference_rdv,
-            'message' => "Rappel automatique envoyé par SMS ({$user->telephone}) et Email ({$user->email}) pour votre RDV du {$dateFr} à {$heure}.",
+            'message' => "Rappel officiel envoyé pour votre consultation avec le Dr. {$doctorName} le {$dateFr} à {$heure}.",
             'lien' => route('patient.rendez-vous.show', $rdv->id),
             'lu' => false,
         ]);
 
         return [
             'status' => 'success',
+            'email_sent' => $emailSent,
+            'email_error' => $emailError,
             'recipient_phone' => $user->telephone,
             'recipient_email' => $user->email,
-            'sms_preview' => $smsContent,
-            'email_subject' => $emailSubject,
+            'whatsapp_url' => $whatsappUrl,
+            'whatsapp_message' => $whatsappMessage,
             'sent_at' => now()->format('d/m/Y H:i:s'),
         ];
+    }
+
+    /**
+     * Envoie la confirmation officielle de rendez-vous par e-mail au patient.
+     *
+     * @param RendezVous $rdv
+     * @return bool
+     */
+    public function sendConfirmation(RendezVous $rdv): bool
+    {
+        $patient = $rdv->patient;
+        $user = $patient ? $patient->user : null;
+
+        if (!$user || empty($user->email)) {
+            return false;
+        }
+
+        try {
+            Mail::to($user->email)->send(new AppointmentConfirmationMail($rdv));
+            Log::info("EMAIL_CONFIRMATION_SUCCESS: Confirmation envoyée à {$user->email} pour RDV #{$rdv->reference_rdv}");
+            return true;
+        } catch (\Throwable $e) {
+            Log::warning("EMAIL_CONFIRMATION_FAILED: Erreur pour {$user->email} ({$e->getMessage()})");
+            return false;
+        }
     }
 }

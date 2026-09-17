@@ -98,16 +98,22 @@
                 <!-- Bouton Attestation PDF / Impression -->
                 <a href="{{ route('patient.rendez-vous.attestation', $rendezVous->id) }}" target="_blank" class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold shadow-xs transition">
                     <i data-lucide="file-text" class="w-3.5 h-3.5 text-blue-400"></i>
-                    <span>Attestation de RDV (PDF)</span>
+                    <span>Attestation PDF</span>
                 </a>
 
-                <!-- Bouton Envoi Rappel SMS & Email -->
+                <!-- Bouton Rappel WhatsApp Professionnel -->
                 @if(in_array($rendezVous->statut, ['en_attente', 'confirme']))
+                    <a href="{{ $whatsappUrl }}" target="_blank" class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-xs transition" title="Recevoir ou partager ma convocation sur WhatsApp">
+                        <i data-lucide="message-circle" class="w-3.5 h-3.5"></i>
+                        <span>Rappel WhatsApp</span>
+                    </a>
+
+                    <!-- Bouton Envoi Rappel E-mail Réel -->
                     <form action="{{ route('patient.rendez-vous.rappel', $rendezVous->id) }}" method="POST">
                         @csrf
-                        <button type="submit" class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold border border-slate-200 transition" title="Recevoir un rappel par SMS et email">
-                            <i data-lucide="bell-ring" class="w-3.5 h-3.5 text-blue-600"></i>
-                            <span>Rappel SMS / Email</span>
+                        <button type="submit" class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold border border-slate-200 transition" title="M'envoyer un rappel officiel par e-mail">
+                            <i data-lucide="mail" class="w-3.5 h-3.5 text-blue-600"></i>
+                            <span>Rappel E-mail</span>
                         </button>
                     </form>
                 @endif
