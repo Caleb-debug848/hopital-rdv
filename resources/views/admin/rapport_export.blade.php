@@ -56,7 +56,7 @@
             <span>Retour aux Statistiques</span>
         </a>
 
-        <div class="flex items-center gap-2">
+        <div class="flex items-center gap-2 flex-wrap">
             <a href="{{ route('admin.statistiques.export', ['periode' => $periode, 'format' => 'excel']) }}" class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition shadow-xs">
                 <i data-lucide="sheet" class="w-4 h-4"></i>
                 <span>Exporter en Excel Pro (.XLS)</span>
@@ -257,8 +257,8 @@
                 <i data-lucide="list" class="w-4 h-4 text-brand-600"></i>
                 Registre des Consultations (Échantillon de la période)
             </h3>
-            <div class="bg-white border border-slate-200 rounded-2xl overflow-hidden">
-                <table class="w-full text-left text-xs">
+            <div class="bg-white border border-slate-200 rounded-2xl overflow-x-auto">
+                <table class="w-full text-left text-xs min-w-[500px] sm:min-w-0">
                     <thead class="bg-slate-900 text-white text-[9.5px] uppercase tracking-wider">
                         <tr>
                             <th class="p-2.5">Réf.</th>

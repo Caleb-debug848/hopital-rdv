@@ -41,7 +41,10 @@ class RendezVous extends Model
     {
         static::creating(function ($rdv) {
             if (empty($rdv->reference_rdv)) {
-                $rdv->reference_rdv = '#RDV-' . str_pad((string) mt_rand(1, 999999), 6, '0', STR_PAD_LEFT);
+                do {
+                    $ref = '#RDV-' . str_pad((string) random_int(100000, 999999), 6, '0', STR_PAD_LEFT);
+                } while (static::where('reference_rdv', $ref)->exists());
+                $rdv->reference_rdv = $ref;
             }
         });
     }

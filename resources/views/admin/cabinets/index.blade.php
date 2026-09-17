@@ -129,8 +129,8 @@
     @endif
 
     <!-- MODALE : AJOUTER UN CABINET -->
-    <div x-show="addModal" class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4" style="display: none;">
-        <div @click.away="addModal = false" class="bg-white rounded-3xl max-w-lg w-full p-6 space-y-5 shadow-2xl border border-slate-100">
+    <div x-show="addModal" class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4" style="display: none;">
+        <div @click.away="addModal = false" class="bg-white rounded-3xl max-w-lg w-full p-4 sm:p-6 space-y-5 shadow-2xl border border-slate-100">
             <div class="flex items-center justify-between border-b border-slate-100 pb-3">
                 <h3 class="text-base font-heading font-extrabold text-slate-900 flex items-center gap-2">
                     <i data-lucide="door-open" class="w-4 h-4 text-brand-600"></i>
@@ -190,8 +190,8 @@
     </div>
 
     <!-- MODALE : MODIFIER UN CABINET -->
-    <div x-show="editModal" class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4" style="display: none;">
-        <div @click.away="editModal = false" class="bg-white rounded-3xl max-w-lg w-full p-6 space-y-5 shadow-2xl border border-slate-100">
+    <div x-show="editModal" class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4" style="display: none;">
+        <div @click.away="editModal = false" class="bg-white rounded-3xl max-w-lg w-full p-4 sm:p-6 space-y-5 shadow-2xl border border-slate-100">
             <div class="flex items-center justify-between border-b border-slate-100 pb-3">
                 <h3 class="text-base font-heading font-extrabold text-slate-900 flex items-center gap-2">
                     <i data-lucide="edit-3" class="w-4 h-4 text-brand-600"></i>
